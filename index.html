@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roofart Pasirinkimo Sistema</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bauen_style.css">
+    <link rel="stylesheet" href="bauen_style_mod.css">
+    <style>
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 800px;
+            /*border: 2px dashed #ccc;*/
+            margin: 20px 0;
+            background-color: white;
+        }
+        .image-item {
+            position: absolute;
+            cursor: move;
+        }
+        .image-item img {
+            max-width: 150px;
+            max-height: 150px;
+            display: block;
+        }
+        .image-placeholder {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            /*background-color: #ffffff;*/
+            /*border: 2px solid #999;*/
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .image-placeholder:hover {
+            background-color: #d0d0d0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index:555555 !important;
+        }
+        .image-placeholder span {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            pointer-events: none;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        input[type="file"], button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            position: relative;
+            top: 100px;
+            left: 500px;
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        .modal-content label {
+            display: block;
+            margin: 20px 0 5px 0;
+            font-weight: bold;
+        }
+        .modal-content select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+        .modal-content button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .modal-content button:hover {
+            background-color: #45a049;
+        }
+        .modal-content .cancel-btn {
+            background-color: #f44336;
+        }
+        .modal-content .cancel-btn:hover {
+            background-color: #da190b;
+        }
+        .price-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        .price-popup {
+            display: none;
+            position: absolute;
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            white-space: nowrap;
+            z-index: 999;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+        .price-popup.show {
+            display: block;
+        }
+
+        body {
+            height: 2000px;
+            background-color: white;
+        }
+
+        h1 {
+            font-family: arial;
+            font-size: 30px !important;
+            padding-top: 20px;
+        }
+
+        .filtras {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-around;
+            padding-top: 20px;
+        }
+        .filtras div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .size-selection {
+            display: none;
+        }
+
+        #itemSize {
+            height: 50px;
+        }
+
+    </style>
+</head>
+
+<div class="header"><div class="header-desktop"><div class="wrapper">    <a href="/lt" title="bauen" class="header-logo">         <img src="bauen.png" alt="Bauen">    </a>    <ul class="header-nav">         <li><a class="header-compare fj-catalog-compare-count" href="/prekiu-palyginimas" title="Prekių palyginimas" onclick="fjObj.showAjaxPopup($(this).attr('href')); return false;">         	0</a></li>    	<li><a href="/mano/ziuretos-prekes" title="Žiūrėtos prekės" class="header-view fj-catalog-history-count">4</a></li>        <li><a class="header-fav fj-catalog-favorite-count" href="/patinkancios-prekes" title="Patinkančios prekės">0</a></li>                
+
+	<li>
+		<div class="header-login">
+			<a href="/registruotis" title="Registruotis">Registruotis</a>
+			arba			<a href="/prisijungti" title="Prisijungti">Prisijungti</a> 
+			
+		</div>
+	</li>
+
+                <li class="header-nav-cart">			<a href="javascript:;" style="cursor: default" class=" header-cart">							<span class="fj-cart-layout-amount"></span>			</a>			                                               <div class="header-subnav header-subnav--cart ">	            	            	<strong class="fj-cart-layout-amount header-subnav-title"></strong>	            	            <a href="javascript:;" onclick="javascript: $(this).closest('li').css('zIndex', 110).find('.header-subnav').fadeOut();" class="header-subnav-close">uzdaryti</a>	                            <a onclick="javascript: $(this).parent().fadeOut();" class="cart-block-close" href="#"></a>                                <div class="change">
+<ul class="header-cart-list fj-cart-layout-items">
+   
+      <br>Prekių krepšelis tuščias    
+     
+</ul>
+</div>		            </div>        </li>            </ul>        <ul class="header-nav no-margin">
+	<li>
+        <div class="header-time">I-V, 8:00-17:00</div>
+        <div class="header-phone">8-656-23344</div></li>
+	
+
+
+
+    <li class="header-nav-support">
+        <a class="header-support" href="/pagalba" title="Pagalba">Pagalba </a> <a href="javascript:;" onclick="javascript: $('.header-nav-support.header-nav--currency').css('z-index',2);$(this).parent().find('.header-subnav').css('z-index', '110').fadeIn();" class="header-trigger"></a>
+
+        <div class="header-subnav header-subnav--support">
+        	<strong class="header-subnav-title">Pagalba</strong>
+            <a href="javascript:;" class="header-subnav-close">uzdaryti</a>
+
+            <ul class="header-subnav-list">
+                                                    <li><a title="Registracijos sąlygos" href="/registracijos-salygos" class="icon-check">Registracijos sąlygos</a></li>
+                                                                        <li><a title="Siuntimas ir pristatymas" href="/prekiu-siuntimas-ir-pristatymas" class="aside-nav-shipping">Siuntimas ir pristatymas</a></li>
+                                                                        <li><a title="Keitimas ir grąžinimas" href="/keitimas-ir-grazinimas" class="icon-circle">Keitimas ir grąžinimas</a></li>
+                                                                        <li><a title="Garantinis aptarnavimas" href="/garantinis-aptarnavimas" class="aside-nav-waranty">Garantinis aptarnavimas</a></li>
+                                                                        <li><a title="D.U.K." href="/dazniausiai-uzduodami-klausimai-duk" class="aside-nav-faq">D.U.K.</a></li>
+                                                                        <li><a title="Kaip pirkti" href="/kaip-pirkti" class="icon-cart">Kaip pirkti</a></li>
+                                                                        <li><a title="Atsiskaitymas" href="/atsiskaitymas" class="icon-pc">Atsiskaitymas</a></li>
+                                                                        <li><a title="Rašykite mums" href="/rasykite-mums" class="fj-form-ask icon-oval">Rašykite mums</a></li>
+                                                                        <li><a title="Kontaktai" href="/kontaktai" class="icon-phone">Kontaktai</a></li>
+                                                                        <li><a title="Atsakomybės apribojimas" href="/atsakomybes-apribojimas" class="aside-nav-disclaimer">Atsakomybės apribojimas</a></li>
+                                                </ul>
+        </div>
+    </li>
+            <li>
+                        <a href="/kontaktai" title="Kontaktai">Kontaktai</a>
+        </li>
+  <script type="text/javascript">
+	$('.header-subnav-close').click(function(){
+		$(this).closest('.header-subnav').fadeOut();
+		$('.header-nav-support').css('z-index', '2');
+	});
+</script>
+</ul>    <div class="nav">
+
+	<ul>
+
+        
+            <li>
+
+                <a id="category-1314" href="/statybines-medziagos" title="Statyba" class="">  
+
+                   
+
+                   Statyba<br>
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+            <li>
+
+                <a id="category-1322" href="/apdailos-medziagos" title="Apdaila" class="">  
+
+                   
+
+                   Apdaila<br>
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+            <li>
+
+                <a id="category-1323" href="/darbo-irankiai" title="Įrankiai" class="">  
+
+                   
+
+                   Įrankiai
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+            <li>
+
+                <a id="category-1324" href="/elektros-prekes" title="Elektra" class="">  
+
+                   
+
+                   Elektra<br>
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+            <li>
+
+                <a id="category-1325" href="/santechnikos-prekes" title="Santechnika" class="">  
+
+                   
+
+                   Santechnika<br>
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+            <li>
+
+                <a id="category-1327" href="/sildymo-prekes" title="Vėdinimas" class="">  
+
+                   
+
+                   Vėdinimas<br>
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+            <li>
+
+                <a id="category-1328" href="/sodo-prekes" title="Sodas" class="">  
+
+                   
+
+                   Sodas<br>
+
+
+
+
+                </a>
+
+               
+
+            </li> 
+
+        
+        <li>
+
+       <form class="nav-search" method="get" action="/paieska">
+						
+	<div class="nav-search-field">
+		<input id="q" name="q" type="text" autocomplete="off" value="Pvz.: Plyta" class="search-block-input-field ui-autocomplete-input"><span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span>
+	</div>
+	<input type="submit" class="nav-search-submit">
+</form>
+
+<script>
+//<![CDATA[
+             $('.nav-search').submit(function(){
+
+			
+
+					if($('#q').val() == 'Pvz.: Plyta')
+					{
+						$('#q').val('');
+					}
+
+					return true;
+	           });
+				
+         
+$.ui.autocomplete.prototype._renderItem = function( ul, item){
+    		  var term = this.term.split(' ').join('|');
+    		  var re = new RegExp("(" + term + ")", "gi") ;
+    		  var t = item.label.replace(re,"<span>$1</span>");
+    		  return $( "<li></li>" )
+    		     .data( "item.autocomplete", item )
+    		     .append( "<a>" + t + "</a>" )
+    		     .appendTo( ul );
+    		};
+        
+     
+        $( "#q" ).autocomplete({
+          source: "/lt/search/live-search",
+          minLength: 2,
+          messages: {
+              noResults: '',
+              results: function() {}
+          },
+          select: function (event, ui) {
+        	  $("#q").val(ui.item.label);
+              $(".nav-search").submit(); 
+        	},
+        	open: function(){
+        		$('.ui-menu').css('max-width', '380px');
+        	},
+
+          
+        }).autocomplete( "widget" ).addClass( "results" );
+
+
+    $('#q').focus(function(){
+
+    	if($('#q').val() == 'Pvz.: Plyta')
+    	{
+    		$('#q').val('')
+
+    	}
+        $('#q').css('color','#894667');
+    	
+    		}).focusout(function(){
+
+    			if($('#q').val() == '')
+    	    	{
+    	    		$('#q').val('Pvz.: Plyta').css('color', '#bcbcbc');
+                        
+
+    	    	}
+    		});
+
+
+    $(document).ready(function() {  
+
+		// Icon Click Focus
+		$('div.icon').click(function(){
+			$('input#search').focus();
+		});
+
+		// Live Search
+		// On Search Submit and Get Results
+		function search() {
+			var query_value = $('input#search').val();
+			$('b#search-string').html(query_value);
+			if(query_value !== ''){
+				$.ajax({
+					type: "POST",
+					url: "search.php",
+					data: { query: query_value },
+					cache: false,
+					success: function(html){
+						$("ul#results").html(html);
+					}
+				});
+			}return false;    
+		}
+
+		$("input#search").live("keyup", function(e) {
+			// Set Timeout
+			clearTimeout($.data(this, 'timer'));
+
+			// Set Search String
+			var search_string = $(this).val();
+
+			// Do Search
+			if (search_string == '') {
+				$("ul#results").fadeOut();
+				$('h4#results-text').fadeOut();
+			}else{
+				$("ul#results").fadeIn();
+				$('h4#results-text').fadeIn();
+				$(this).data('timer', setTimeout(search, 100));
+			};
+		});
+
+	});
+  //]]>
+    </script>			
+       </li>
+
+    </ul>
+
+</div>
+
+
+
+
+
+
+
+   		</div> <!-- .wrapper -->	</div> <!-- header-desktop -->		<div class="header-mob">
+
+                <div class="header-mob-top">
+                    <a href="/lt" class="header-mob-top-logo" title="Bauen">Bauen</a>
+                    <div class="header-mob-top-icons">
+                        <a class="header-mob-top-search-trigger " href="/paieska" title="Paieška">Paieška</a>
+                                                	<a class="header-mob-top-user-trigger" href="/prisijungti" title="Prisijungti">Vartotojas</a>
+                                                        <a class="header-mob-top-cart-trigger" href="/prekiu-krepselis" title="Krepšelis">Krepšelis </a>
+                        <a class="header-mob-top-nav-trigger" title="Meniu">Meniu</a>
+                    </div>
+                    <form class="header-mob-top-search" method="get" action="/paieska">
+                        <input name="q" type="text" placeholder="Pvz.: Plyta">
+                        <input type="hidden" name="search-order" class="mobile-search-order">
+                        <input type="submit">
+                        <a class="header-mob-top-search-clear " title="Išvalyti">Išvalyti</a>
+                    </form>
+                </div>
+                <div class="header-mob-nav" data-level="1">
+                    <ul class="header-mob-nav-list">
+                    					        					                <li>
+					                <a href="/statybines-medziagos" title="Statyba" class="withsubnav">
+					                   Statyba					                   <b>3042</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Statyba">Statyba</a>
+			                                        <a href="/statybines-medziagos" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/apsiltinimo-medziagos" title="Apšiltinimo medžiagos">Apšiltinimo medžiagos <b>335</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/aptverimo-sistemos" title="Aptvėrimo sistemos">Aptvėrimo sistemos <b>37</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/armavimo-tinkliukai" title="Armavimo tinklelis">Armavimo tinklelis <b>14</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/betonas-uzpildai" title="Betonas, užpildai">Betonas, užpildai <b>6</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/blokeliai" title="Blokeliai">Blokeliai <b>61</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/birios-medziagos" title="Birios medžiagos">Birios medžiagos <b>92</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/dekoratyviniai-tinkai" title="Dekoratyviniai tinkai">Dekoratyviniai tinkai <b>55</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/gelzbetonio-gaminiai" title="Gelžbetonio gaminiai">Gelžbetonio gaminiai <b>1</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/juostos" title="Juostos">Juostos <b>114</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/kaminu-sistemos" title="Kaminų sistemos">Kaminų sistemos <b>99</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/klijai" title="Klijai">Klijai <b>54</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/lietaus-nuvedimas" title="Lietaus nuvedimo sistemos">Lietaus nuvedimo sistemos <b>858</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybines/langai" title="Langai">Langai <b>56</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/plytos-plyteles" title="Plytos, plytelės">Plytos, plytelės <b>27</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/sandarinimo-medziagos" title="Sandarinimo medžiagos">Sandarinimo medžiagos <b>185</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybine-chemija" title="Statybinė chemija">Statybinė chemija <b>18</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybines-pleveles" title="Statybinės plėvelės">Statybinės plėvelės <b>80</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybines-plokstes" title="Statybinės plokštės">Statybinės plokštės <b>71</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/stogu-dangos" title="Stogų dangos">Stogų dangos <b>542</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/stogo-langai" title="Stogo langai">Stogo langai <b>71</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/tinkai-tinkas" title="Tinkai">Tinkai <b>19</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/trinkeles" title="Trinkelės">Trinkelės <b>4</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/tvirtinimo-profiliai" title="Tvirtinimo profiliai">Tvirtinimo profiliai <b>70</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/tvirtinimo-detales" title="Tvirtinimo detalės">Tvirtinimo detalės <b>165</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/vielos-tinklai" title="Vielos tinklai">Vielos tinklai <b>11</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/terasos" title="Terasos">Terasos <b>6</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   					        					                <li>
+					                <a href="/apdailos-medziagos" title="Apdaila" class="withsubnav">
+					                   Apdaila					                   <b>740</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Apdaila">Apdaila</a>
+			                                        <a href="/apdailos-medziagos" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/glaistai" title="Glaistai">Glaistai <b>142</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/dazai-gruntai" title="Dažai, gruntai">Dažai, gruntai <b>501</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/lakai-medienai" title="Lakai">Lakai <b>21</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/alyvos" title="Alyvos">Alyvos <b>16</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/beicai" title="Beicai">Beicai <b>3</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/emales" title="Emalės">Emalės <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/impregnantai-medienai" title="Impregnantai">Impregnantai <b>37</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/difuzoriai" title="Difuzoriai">Difuzoriai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/pakabinamos-lubos" title="Pakabinamos lubos">Pakabinamos lubos <b>12</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/valymo-priemones" title="Valymo priemonės">Valymo priemonės <b>1</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/apdailos-priedai" title="Priedai">Priedai <b>3</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   					        					                <li>
+					                <a href="/darbo-irankiai" title="Įrankiai" class="withsubnav">
+					                   Įrankiai					                   <b>227</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Įrankiai">Įrankiai</a>
+			                                        <a href="/darbo-irankiai" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/dazymo-ir-apdailos-irankiai" title="Dažymo ir apdailos įrankiai">Dažymo ir apdailos įrankiai <b>191</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/diskai" title="Diskai">Diskai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/mechaniniai-irankiai" title="Mechaniniai įrankiai">Mechaniniai įrankiai <b>14</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/matavimo-irankiai" title="Matavimo įrankiai">Matavimo įrankiai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/pjovimo-irankiai" title="Pjovimo įrankiai">Pjovimo įrankiai <b>5</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/graztai" title="Grąžtai">Grąžtai <b>13</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/gkp-irankiai" title="GKP įrankiai">GKP įrankiai <b>0</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   					        					        					        					        					                <li>
+					                <a href="/sodo-prekes" title="Sodas" class="withsubnav">
+					                   Sodas					                   <b>13</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Sodas">Sodas</a>
+			                                        <a href="/sodo-prekes" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/sniego-kastuvai" title="Sniego kastuvai">Sniego kastuvai <b>0</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/siltnamiai" title="Šiltnamiai">Šiltnamiai <b>10</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/vejos-segmentai" title="Vejos segmentai">Vejos segmentai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/laisvalaikio-prekes" title="Laisvalaikis">Laisvalaikis <b>1</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   	 
+                    </ul>
+                    <ul class="header-mob-nav-list header-mob-nav-list--icons">
+                        <li>
+                            <a class="withsubnav header-mob-nav-list--icons-users" title="Vartotojams">Vartotojams</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--user" title="Vartotojams">Vartotojams</a></li>
+                                    	                                    <li><a class="arrow" href="/prisijungti" title="Prisijungti">Prisijungti</a></li>
+	                                    <li><a class="arrow" href="/registruotis" title="Registruotis">Registruotis</a></li>
+                                     
+                                    <li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--fav spacing" href="/patinkancios-prekes" title="Patinkančios prekės">Patinkančios prekės <b class="fj-catalog-favorite-count">0</b></a></li>
+                                    <li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--view spacing" href="/mano/ziuretos-prekes" title="Žiūrėtos prekės">Žiūrėtos prekės <b class="fj-catalog-history-count">4</b></a></li>
+                                    <li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--compare spacing" href="/prekiu-palyginimas" title="Prekių palyginimas">Prekių palyginimas <b class="fj-catalog-compare-count">0</b></a></li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                        <li>
+                        	<a class="arrow header-mob-nav-list--icons-cart" title="Krepšelis" href="/prekiu-krepselis">Krepšelis<b>0</b></a>
+                        </li>
+                        <li>
+		                			                	                        	<a class="withsubnav header-mob-nav-list--icons-help" href="/pagalba" title="Pagalba">Pagalba</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--help" title="Pagalba">Pagalba</a></li>
+					                  					                							                    		<li><a class="arrow" title="Registracijos sąlygos" href="/registracijos-salygos">Registracijos sąlygos</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Siuntimas ir pristatymas" href="/prekiu-siuntimas-ir-pristatymas">Siuntimas ir pristatymas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Keitimas ir grąžinimas" href="/keitimas-ir-grazinimas">Keitimas ir grąžinimas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Garantinis aptarnavimas" href="/garantinis-aptarnavimas">Garantinis aptarnavimas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="D.U.K." href="/dazniausiai-uzduodami-klausimai-duk">D.U.K.</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Kaip pirkti" href="/kaip-pirkti">Kaip pirkti</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Atsiskaitymas" href="/atsiskaitymas">Atsiskaitymas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Rašykite mums" href="/rasykite-mums">Rašykite mums</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Kontaktai" href="/kontaktai">Kontaktai</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Atsakomybės apribojimas" href="/atsakomybes-apribojimas">Atsakomybės apribojimas</a></li>
+					                    						                                                  </ul>
+                            </div>
+                        </li>
+                        <li>
+                        	<a class="withsubnav header-mob-nav-list--icons-important" title="Svarbi informacija">Svarbi informacija</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--important" title="Svarbi informacija">Svarbi informacija</a></li>
+                                    																														<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec59 " href="/nemokamas-pristatymas" title="Nemokas pristatymas">Nemokas pristatymas</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec60 " href="/pristatymas-per-1-3-dienas" title="Pristatymas per 1 - 3 darbo dienas">Pristatymas per 1 - 3 darbo dienas</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec61 " href="/geriausios-kainos-garantija" title="Kainos garantija">Kainos garantija</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec62 " href="/nuolaidu-kortele" title="Gaukite nuolaidų kortelę">Gaukite nuolaidų kortelę</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec63 " href="/statybiniu-medziagu-eksportas" title="Video kaip apsipirkti">Video kaip apsipirkti</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec88 " href="dovanu-cekiai-1" title="Dovanų čekiai">Dovanų čekiai</a></li>
+																			                                </ul>
+                            </div>
+                        </li>
+                        <li>
+		                			                	                        	<a class="withsubnav header-mob-nav-list--icons-advices" href="/specialisto-patarimai" title="Specialisto patarimai">Specialisto patarimai<b>15</b></a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--advices" title="Specialisto patarimai">Specialisto patarimai</a></li>
+					                  					                							                    		<li>
+					                    			<a class="arrow" title="Pamatų įrengimas" href="/pamatu-irengimas">
+					                    				Pamatų įrengimas					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>3</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Brata dūmtraukiai" href="/brata-dumtraukiai">
+					                    				Brata dūmtraukiai					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>1</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Dažymas" href="/dazymas">
+					                    				Dažymas					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>4</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Pastatų šiltinimas" href="/pastatu-siltinimas">
+					                    				Pastatų šiltinimas					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>4</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Stoglangiai" href="/stoglangiai">
+					                    				Stoglangiai					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>1</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Pertvarų statyba" href="/pertvaru-statyba">
+					                    				Pertvarų statyba					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>2</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                                                  </ul>
+                            </div>
+                        </li>
+                        <li>
+		                			                	                        	<a class="withsubnav header-mob-nav-list--icons-about" href="/apie-mus" title="Apie mus">Apie mus</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--about" title="Apie mus">Apie mus</a></li>
+					                  					                							                    		<li> 
+					                    			<a class="arrow" title="Apie BAUEN" href="/apie-mus">
+						                    			Apie BAUEN					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li> 
+					                    			<a class="arrow" title="Kontaktai" href="/kontaktai">
+						                    			Kontaktai					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li> 
+					                    			<a class="arrow fj-form-ask" title="Rašykite mums" href="/kontaktai">
+						                    			Rašykite mums					                    			</a>
+					                    		</li>
+					                    						                                                  </ul>
+                            </div>
+                        </li>
+                        
+                        <li>
+                        	                        	<a class="arrow header-mob-nav-list--icons-subscribe" title="Naujienlaiškio prenumerata" href="/naujienlaiskio-prenumerata">Naujienlaiškio prenumerata</a>
+                        </li>
+                                            </ul>
+                    <a class="header-mob-phone" href="tel:8-656-23344">8-656-23344</a>
+                    <a class="header-mob-email" href="mailto:eprekyba@bauen.lt">eprekyba@bauen.lt</a>
+                </div>
+
+</div>	</div>
+
+<body>
+    <h1>Lietaus nuvedimo sistema</h1>
+    
+    <div class="filtras">
+        <div>
+            <h2>Gamintojas</h2>
+            <select id="manufacturer">
+                <option value="">Pasirinkti gamintoją</option>
+                <option value="bauen">Bauen</option>
+                <option value="lindab">Roofart</option>
+                <option value="moeller">Gamrat</option>
+                <option value="other">Kitas</option>
+            </select>
+        </div>
+        <div>
+            <h2>Sistemos dydis</h2>
+            <select id="size">
+                <option value="">Pasirinkti dydį</option>
+                <option value="small">Mažas (100mm)</option>
+                <option value="medium">Vidutinis (125mm)</option>
+                <option value="large">Didelis (150mm)</option>
+            </select>
+        </div>
+        <div>
+            <h2>Spalva</h2>
+            <select id="color">
+                <option value="">Pasirinkti spalvą</option>
+                <option value="white">Balta</option>
+                <option value="black">Juoda</option>
+                <option value="gray">Pilka</option>
+                <option value="brown">Ruda</option>
+            </select>
+        </div>
+    </div>
+    
+    <div id="imageContainer" class="image-container">
+        <!-- Image Placeholders - 34 items (6 columns x 6 rows = 36 slots) -->
+        <div class="image-placeholder" data-image-id="img-01" data-name="Latako dangtelis" data-price="15.00" style="left: 15px; top: 130px; z-index: 1;"><img src="latako_dangtelis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-02" data-name="Kampas išorinis" data-price="12.50" style="left: 80px; top: 140px; z-index: 3;"><img src="kampas_isorinis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-03" data-name="Latakas" data-price="20.00" style="left: 230px; top: 100px; z-index: 2;"><img src="latakas.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-04" data-name="Kampas vidinis" data-price="18.00" style="left: 355px; top: 68px; z-index: 1;"><img src="kampas_vidinis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-05" data-name="Universalus latako laikiklis" data-price="8.50" style="left: 440px; top: 90px; z-index: 2;"><img src="universalus_latako_laikiklis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-06" data-name="Latakas 2" data-price="22.00" style="left: 530px; top: 115px; z-index: 2;"><img src="latakas_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-07" data-name="Latako jungtis" data-price="10.00" style="left: 620px; top: 140px; z-index: 2;"><img src="latako_jungtis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-08" data-name="Stačiakampis piltuvas" data-price="25.00" style="left: 710px; top: 180px; z-index: 2;"><img src="staciakampis_piltuvas.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-09" data-name="Latakas 2" data-price="20.00" style="left: 850px; top: 210px; z-index: 2;"><img src="latakas_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-10" data-name="Latako dangtelis 2" data-price="16.00" style="left: 940px; top: 235px; z-index: 2;"><img src="latako_dangtelis_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-11" data-name="Latako laikiklis" data-price="9.00" style="left: 150px; top: 100px; z-index: 2;"><img src="latako_laikiklis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-12" data-name="Įlaja" data-price="30.00" style="left: 520px; top: 160px; z-index: 1;"><img src="ilaja.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-13" data-name="Lietvamzdžio alkūnė 60" data-price="14.00" style="left: 530px; top: 255px; z-index: 1;"><img src="lietvamzdio_alkune_60.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-14" data-name="Lietvamzdis 1m" data-price="11.50" style="left: 580px; top: 320px; z-index: 1;"><img src="lietvamzdis_1m.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-15" data-name="Lietvamzdžio alkūnė 60-2" data-price="14.00" style="left: 630px; top: 385px; z-index: 1;"><img src="lietvamzdio_alkune_60_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-16" data-name="Lietvamzdžio laikiklis" data-price="7.50" style="left: 650px; top: 455px; z-index: 1;"><img src="lietvamzdzio_laikiklis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-17" data-name="Lietvamzdis 1m" data-price="28.00" style="left: 640px; top: 520px; z-index: 1;"><img src="lietvamzdis_3m.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-18" data-name="Lietvamzdžio trišakis" data-price="19.00" style="left: 628px; top: 625px; z-index: 1"><img src="lietvamzdio_trisakis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-19" data-name="Vandens skirstytuvas" data-price="24.00" style="left: 622px; top: 750px; z-index: 1"><img src="vandens_skirstytuvas.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-20" data-name="Lietvamzdžio apatinė alkūnė 60" data-price="13.50" style="left: 630px; top: 860px; z-index: 1"><img src="lietvamzdzio_apatine_alkune_60.png" alt="Roof design 1" /></div>
+        <!--<div class="image-placeholder" data-image-id="img-21" style="left: 230px; top: 340px;"><span>Image 21</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-22" style="left: 340px; top: 340px;"><span>Image 22</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-23" style="left: 450px; top: 340px;"><span>Image 23</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-24" style="left: 560px; top: 340px;"><span>Image 24</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-25" style="left: 10px; top: 450px;"><span>Image 25</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-26" style="left: 120px; top: 450px;"><span>Image 26</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-27" style="left: 230px; top: 450px;"><span>Image 27</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-28" style="left: 340px; top: 450px;"><span>Image 28</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-29" style="left: 450px; top: 450px;"><span>Image 29</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-30" style="left: 560px; top: 450px;"><span>Image 30</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-31" style="left: 10px; top: 560px;"><span>Image 31</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-32" style="left: 120px; top: 560px;"><span>Image 32</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-33" style="left: 230px; top: 560px;"><span>Image 33</span></div>-->
+        <!--<div class="image-placeholder" data-image-id="img-34" style="left: 340px; top: 560px;"><span>Image 34</span></div>-->
+    </div>
+    
+    <div id="imageModal" class="modal">
+            <div class="modal-content">
+                <h2> <span id="itemName">&nbsp;</span></h2>
+            
+            <div class="size-selection">
+                <label for="itemSize">Ilgis:</label>
+                <select id="itemSize">
+                    <option value="small">2 m.</option>
+                    <option value="medium">3 m.</option>
+                </select>
+            </div>
+            
+            <label for="quantity">Kiekis:</label>
+            <input type="number" id="quantity" placeholder="Enter quantity" value="1" min="1" />
+            
+            <button id="addToCartBtn">Į krepšelį</button>
+            <button class="cancel-btn" id="cancelBtn">Atšaukti</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
