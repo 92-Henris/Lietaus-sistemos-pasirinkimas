@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roofart Pasirinkimo Sistema</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="bauen_style.css">
+    <link rel="stylesheet" href="bauen_style_mod.css">
+    <style>
+        .image-container {
+            position: relative;
+            width: 100%;
+            height: 1000px;
+            margin: 20px 0;
+            background-color: white;
+        }
+        .image-item {
+            position: absolute;
+            cursor: move;
+        }
+        .image-item img {
+            max-width: 150px;
+            max-height: 150px;
+            display: block;
+        }
+        .image-placeholder {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            /*background-color: #ffffff;*/
+            /*border: 2px solid #999;*/
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .image-placeholder:hover {
+            background-color: #824263;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index:555555 !important;
+        }
+        .image-placeholder span {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            pointer-events: none;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        input[type="file"], button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            position: relative;
+            top: 100px;
+            left: 500px;
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+        }
+        .modal-content h2 {
+            margin-top: 0;
+        }
+        .modal-content label {
+            display: block;
+            margin: 20px 0 5px 0;
+            font-weight: bold;
+        }
+        .modal-content select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+        .modal-content button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .modal-content button:hover {
+            background-color: #45a049;
+        }
+        .modal-content .cancel-btn {
+            background-color: #f44336;
+        }
+        .modal-content .cancel-btn:hover {
+            background-color: #da190b;
+        }
+        .welcome-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .welcome-modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .welcome-modal-content h2 {
+            font: bold 15px / 25px Arial;
+            margin-top: 0;
+            color: #824263;
+        }
+        .welcome-modal-content p {
+            line-height: 1.6;
+        }
+        .welcome-modal-content ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        .welcome-modal-content li {
+            margin-bottom: 8px;
+        }
+        .welcome-modal-content button {
+            background-color: #824263;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .welcome-modal-content button:hover {
+            background-color: #995277;
+        }
+        .price-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 10px 0;
+        }
+        .price-popup {
+            display: none;
+            position: absolute;
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            white-space: nowrap;
+            z-index: 999;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
+        }
+        .price-popup.show {
+            display: block;
+        }
+
+        body {
+            height: 2000px;
+            background-color: white;
+        }
+
+        h1 {
+            font: bold 30px / 34px Arial !important;
+            padding-top: 20px;
+        }
+
+        .filtras {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-around;
+            padding-top: 20px;
+        }
+        .filtras div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .size-selection {
+            display: none;
+        }
+
+        .modal-filters {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .modal-filters h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .modal-filters div {
+            margin-bottom: 15px;
+        }
+
+        .modal-filters label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .modal-filters select {
+            width: 100%;
+            padding: 1px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: white;
+        }
+
+        .modal-catalog-btn {
+            font: 12px / 28px Arial;
+            box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.48);
+            display: inline-block;
+            background-color: #824263;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-catalog-btn:hover {
+            background-color: #995277;
+        }
+
+        #itemSize {
+            height: 50px;
+        }
+
+        .nav {
+            background: url(https://www.bauen.lt/resources/img/subnav-bg.jpg) 0 50px no-repeat;
+        }
+
+    </style>
+</head>
+
+<div class="header"><div class="header-desktop"><div class="wrapper">    <a href="https://www.bauen.lt/lt" title="bauen" class="header-logo">         <img src="bauen.png" alt="Bauen">    </a>    <ul class="header-nav">             	                        
+
+	<li>
+		<div class="header-login">
+			<a href="https://www.bauen.lt/registruotis" title="Registruotis">Registruotis</a>
+			arba			<a href="https://www.bauen.lt/prisijungti" title="Prisijungti">Prisijungti</a> 
+			
+		</div>
+	</li>
+
+                <li class="header-nav-cart">			<a href="javascript:;" style="cursor: default" class=" header-cart">							<span class="fj-cart-layout-amount"></span>			</a>			                                               <div class="header-subnav header-subnav--cart ">	            	            	<strong class="fj-cart-layout-amount header-subnav-title"></strong>	            	            <a href="javascript:;" onclick="javascript: $(this).closest('li').css('zIndex', 110).find('.header-subnav').fadeOut();" class="header-subnav-close">uzdaryti</a>	                            <a onclick="javascript: $(this).parent().fadeOut();" class="cart-block-close" href="#"></a>                                <div class="change">
+<ul class="header-cart-list fj-cart-layout-items">
+   
+      <br>Prekių krepšelis tuščias    
+     
+</ul>
+</div>		            </div>        </li>            </ul>        <ul class="header-nav no-margin">
+	<li>
+        <div class="header-time">I-V, 8:00-17:00</div>
+        <div class="header-phone">8-656-23344</div></li>
+	
+
+
+
+    <li class="header-nav-support">
+        <a class="header-support" href="https://www.bauen.lt/pagalba" title="Pagalba">Pagalba</a> 
+
+        <div class="header-subnav header-subnav--support">
+        	<strong class="header-subnav-title">Pagalba</strong>
+            <a href="javascript:;" class="header-subnav-close">uzdaryti</a>
+
+            
+        </div>
+    </li>
+            <li>
+                        <a href="https://www.bauen.lt/kontaktai" title="Kontaktai">Kontaktai</a>
+        </li>
+  <script type="text/javascript">
+	$('.header-subnav-close').click(function(){
+		$(this).closest('.header-subnav').fadeOut();
+		$('.header-nav-support').css('z-index', '2');
+	});
+</script>
+   <div class="nav">
+
+	
+
+            
+
+       <!--<form class="nav-search" method="get" action="/paieska">
+						
+	<div class="nav-search-field">
+		<input id="q" name="q" type="text" autocomplete="off" value="Pvz.: Plyta" class="search-block-input-field ui-autocomplete-input"><span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span>
+	</div>
+	<input type="submit" class="nav-search-submit">
+</form>-->
+
+<script>
+//<![CDATA[
+             $('.nav-search').submit(function(){
+
+			
+
+					if($('#q').val() == 'Pvz.: Plyta')
+					{
+						$('#q').val('');
+					}
+
+					return true;
+	           });
+				
+         
+$.ui.autocomplete.prototype._renderItem = function( ul, item){
+    		  var term = this.term.split(' ').join('|');
+    		  var re = new RegExp("(" + term + ")", "gi") ;
+    		  var t = item.label.replace(re,"<span>$1</span>");
+    		  return $( "<li></li>" )
+    		     .data( "item.autocomplete", item )
+    		     .append( "<a>" + t + "</a>" )
+    		     .appendTo( ul );
+    		};
+        
+     
+        $( "#q" ).autocomplete({
+          source: "/lt/search/live-search",
+          minLength: 2,
+          messages: {
+              noResults: '',
+              results: function() {}
+          },
+          select: function (event, ui) {
+        	  $("#q").val(ui.item.label);
+              $(".nav-search").submit(); 
+        	},
+        	open: function(){
+        		$('.ui-menu').css('max-width', '380px');
+        	},
+
+          
+        }).autocomplete( "widget" ).addClass( "results" );
+
+
+    $('#q').focus(function(){
+
+    	if($('#q').val() == 'Pvz.: Plyta')
+    	{
+    		$('#q').val('')
+
+    	}
+        $('#q').css('color','#894667');
+    	
+    		}).focusout(function(){
+
+    			if($('#q').val() == '')
+    	    	{
+    	    		$('#q').val('Pvz.: Plyta').css('color', '#bcbcbc');
+                        
+
+    	    	}
+    		});
+
+
+    $(document).ready(function() {  
+
+		// Icon Click Focus
+		$('div.icon').click(function(){
+			$('input#search').focus();
+		});
+
+		// Live Search
+		// On Search Submit and Get Results
+		function search() {
+			var query_value = $('input#search').val();
+			$('b#search-string').html(query_value);
+			if(query_value !== ''){
+				$.ajax({
+					type: "POST",
+					url: "search.php",
+					data: { query: query_value },
+					cache: false,
+					success: function(html){
+						$("ul#results").html(html);
+					}
+				});
+			}return false;    
+		}
+
+		$("input#search").live("keyup", function(e) {
+			// Set Timeout
+			clearTimeout($.data(this, 'timer'));
+
+			// Set Search String
+			var search_string = $(this).val();
+
+			// Do Search
+			if (search_string == '') {
+				$("ul#results").fadeOut();
+				$('h4#results-text').fadeOut();
+			}else{
+				$("ul#results").fadeIn();
+				$('h4#results-text').fadeIn();
+				$(this).data('timer', setTimeout(search, 100));
+			};
+		});
+
+	});
+  //]]>
+    </script>			
+       </li>
+
+    </ul>
+
+</div>
+
+
+
+
+
+
+
+   		</div> <!-- .wrapper -->	</div> <!-- header-desktop -->		<div class="header-mob">
+
+                <div class="header-mob-top">
+                    <a href="/lt" class="header-mob-top-logo" title="Bauen">Bauen</a>
+                    <div class="header-mob-top-icons">
+                        <a class="header-mob-top-search-trigger " href="/paieska" title="Paieška">Paieška</a>
+                                                	<a class="header-mob-top-user-trigger" href="/prisijungti" title="Prisijungti">Vartotojas</a>
+                                                        <a class="header-mob-top-cart-trigger" href="/prekiu-krepselis" title="Krepšelis">Krepšelis </a>
+                        <a class="header-mob-top-nav-trigger" title="Meniu">Meniu</a>
+                    </div>
+                    <form class="header-mob-top-search" method="get" action="/paieska">
+                        <input name="q" type="text" placeholder="Pvz.: Plyta">
+                        <input type="hidden" name="search-order" class="mobile-search-order">
+                        <input type="submit">
+                        <a class="header-mob-top-search-clear " title="Išvalyti">Išvalyti</a>
+                    </form>
+                </div>
+                <div class="header-mob-nav" data-level="1">
+                    <ul class="header-mob-nav-list">
+                    					        					                <li>
+					                <a href="/statybines-medziagos" title="Statyba" class="withsubnav">
+					                   Statyba					                   <b>3042</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Statyba">Statyba</a>
+			                                        <a href="/statybines-medziagos" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/apsiltinimo-medziagos" title="Apšiltinimo medžiagos">Apšiltinimo medžiagos <b>335</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/aptverimo-sistemos" title="Aptvėrimo sistemos">Aptvėrimo sistemos <b>37</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/armavimo-tinkliukai" title="Armavimo tinklelis">Armavimo tinklelis <b>14</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/betonas-uzpildai" title="Betonas, užpildai">Betonas, užpildai <b>6</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/blokeliai" title="Blokeliai">Blokeliai <b>61</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/birios-medziagos" title="Birios medžiagos">Birios medžiagos <b>92</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/dekoratyviniai-tinkai" title="Dekoratyviniai tinkai">Dekoratyviniai tinkai <b>55</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/gelzbetonio-gaminiai" title="Gelžbetonio gaminiai">Gelžbetonio gaminiai <b>1</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/juostos" title="Juostos">Juostos <b>114</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/kaminu-sistemos" title="Kaminų sistemos">Kaminų sistemos <b>99</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/klijai" title="Klijai">Klijai <b>54</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/lietaus-nuvedimas" title="Lietaus nuvedimo sistemos">Lietaus nuvedimo sistemos <b>858</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybines/langai" title="Langai">Langai <b>56</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/plytos-plyteles" title="Plytos, plytelės">Plytos, plytelės <b>27</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/sandarinimo-medziagos" title="Sandarinimo medžiagos">Sandarinimo medžiagos <b>185</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybine-chemija" title="Statybinė chemija">Statybinė chemija <b>18</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybines-pleveles" title="Statybinės plėvelės">Statybinės plėvelės <b>80</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/statybines-plokstes" title="Statybinės plokštės">Statybinės plokštės <b>71</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/stogu-dangos" title="Stogų dangos">Stogų dangos <b>542</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/stogo-langai" title="Stogo langai">Stogo langai <b>71</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/tinkai-tinkas" title="Tinkai">Tinkai <b>19</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/trinkeles" title="Trinkelės">Trinkelės <b>4</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/tvirtinimo-profiliai" title="Tvirtinimo profiliai">Tvirtinimo profiliai <b>70</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/tvirtinimo-detales" title="Tvirtinimo detalės">Tvirtinimo detalės <b>165</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/vielos-tinklai" title="Vielos tinklai">Vielos tinklai <b>11</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/terasos" title="Terasos">Terasos <b>6</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   					        					                <li>
+					                <a href="/apdailos-medziagos" title="Apdaila" class="withsubnav">
+					                   Apdaila					                   <b>740</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Apdaila">Apdaila</a>
+			                                        <a href="/apdailos-medziagos" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/glaistai" title="Glaistai">Glaistai <b>142</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/dazai-gruntai" title="Dažai, gruntai">Dažai, gruntai <b>501</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/lakai-medienai" title="Lakai">Lakai <b>21</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/alyvos" title="Alyvos">Alyvos <b>16</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/beicai" title="Beicai">Beicai <b>3</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/emales" title="Emalės">Emalės <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/impregnantai-medienai" title="Impregnantai">Impregnantai <b>37</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/difuzoriai" title="Difuzoriai">Difuzoriai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/pakabinamos-lubos" title="Pakabinamos lubos">Pakabinamos lubos <b>12</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/valymo-priemones" title="Valymo priemonės">Valymo priemonės <b>1</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/apdailos-priedai" title="Priedai">Priedai <b>3</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   					        					                <li>
+					                <a href="/darbo-irankiai" title="Įrankiai" class="withsubnav">
+					                   Įrankiai					                   <b>227</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Įrankiai">Įrankiai</a>
+			                                        <a href="/darbo-irankiai" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/dazymo-ir-apdailos-irankiai" title="Dažymo ir apdailos įrankiai">Dažymo ir apdailos įrankiai <b>191</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/diskai" title="Diskai">Diskai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/mechaniniai-irankiai" title="Mechaniniai įrankiai">Mechaniniai įrankiai <b>14</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/matavimo-irankiai" title="Matavimo įrankiai">Matavimo įrankiai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/pjovimo-irankiai" title="Pjovimo įrankiai">Pjovimo įrankiai <b>5</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/graztai" title="Grąžtai">Grąžtai <b>13</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/gkp-irankiai" title="GKP įrankiai">GKP įrankiai <b>0</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   					        					        					        					        					                <li>
+					                <a href="/sodo-prekes" title="Sodas" class="withsubnav">
+					                   Sodas					                   <b>13</b>
+					                </a> 
+					                	                            		<div class="header-mob-nav" data-level="2">
+                                			<ul class="header-mob-nav-list">
+                                				<li>
+			                                        <a class="header-mob-nav-back" title="Sodas">Sodas</a>
+			                                        <a href="/sodo-prekes" class="header-mob-nav-link" title="visos">visos</a>
+		                                        </li>
+		                                        		                                        	<li><a class="arrow " href="/sniego-kastuvai" title="Sniego kastuvai">Sniego kastuvai <b>0</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/siltnamiai" title="Šiltnamiai">Šiltnamiai <b>10</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/vejos-segmentai" title="Vejos segmentai">Vejos segmentai <b>2</b></a></li>
+		                                        		                                        	<li><a class="arrow " href="/laisvalaikio-prekes" title="Laisvalaikis">Laisvalaikis <b>1</b></a></li>
+		                                        	                                        </ul>
+	                            		</div>
+                            		 
+					            </li>
+					   	 
+                    </ul>
+                    <ul class="header-mob-nav-list header-mob-nav-list--icons">
+                        <li>
+                            <a class="withsubnav header-mob-nav-list--icons-users" title="Vartotojams">Vartotojams</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--user" title="Vartotojams">Vartotojams</a></li>
+                                    	                                    <li><a class="arrow" href="/prisijungti" title="Prisijungti">Prisijungti</a></li>
+	                                    <li><a class="arrow" href="/registruotis" title="Registruotis">Registruotis</a></li>
+                                     
+                                    <li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--fav spacing" href="/patinkancios-prekes" title="Patinkančios prekės">Patinkančios prekės <b class="fj-catalog-favorite-count">0</b></a></li>
+                                    <li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--view spacing" href="/mano/ziuretos-prekes" title="Žiūrėtos prekės">Žiūrėtos prekės <b class="fj-catalog-history-count">4</b></a></li>
+                                    <li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--compare spacing" href="/prekiu-palyginimas" title="Prekių palyginimas">Prekių palyginimas <b class="fj-catalog-compare-count">0</b></a></li>
+                                                                    </ul>
+                            </div>
+                        </li>
+                        <li>
+                        	<a class="arrow header-mob-nav-list--icons-cart" title="Krepšelis" href="/prekiu-krepselis">Krepšelis<b>0</b></a>
+                        </li>
+                        <li>
+		                			                	                        	<a class="withsubnav header-mob-nav-list--icons-help" href="/pagalba" title="Pagalba">Pagalba</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--help" title="Pagalba">Pagalba</a></li>
+					                  					                							                    		<li><a class="arrow" title="Registracijos sąlygos" href="/registracijos-salygos">Registracijos sąlygos</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Siuntimas ir pristatymas" href="/prekiu-siuntimas-ir-pristatymas">Siuntimas ir pristatymas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Keitimas ir grąžinimas" href="/keitimas-ir-grazinimas">Keitimas ir grąžinimas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Garantinis aptarnavimas" href="/garantinis-aptarnavimas">Garantinis aptarnavimas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="D.U.K." href="/dazniausiai-uzduodami-klausimai-duk">D.U.K.</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Kaip pirkti" href="/kaip-pirkti">Kaip pirkti</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Atsiskaitymas" href="/atsiskaitymas">Atsiskaitymas</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Rašykite mums" href="/rasykite-mums">Rašykite mums</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Kontaktai" href="/kontaktai">Kontaktai</a></li>
+					                    						                  					                							                    		<li><a class="arrow" title="Atsakomybės apribojimas" href="/atsakomybes-apribojimas">Atsakomybės apribojimas</a></li>
+					                    						                                                  </ul>
+                            </div>
+                        </li>
+                        <li>
+                        	<a class="withsubnav header-mob-nav-list--icons-important" title="Svarbi informacija">Svarbi informacija</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--important" title="Svarbi informacija">Svarbi informacija</a></li>
+                                    																														<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec59 " href="/nemokamas-pristatymas" title="Nemokas pristatymas">Nemokas pristatymas</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec60 " href="/pristatymas-per-1-3-dienas" title="Pristatymas per 1 - 3 darbo dienas">Pristatymas per 1 - 3 darbo dienas</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec61 " href="/geriausios-kainos-garantija" title="Kainos garantija">Kainos garantija</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec62 " href="/nuolaidu-kortele" title="Gaukite nuolaidų kortelę">Gaukite nuolaidų kortelę</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec63 " href="/statybiniu-medziagu-eksportas" title="Video kaip apsipirkti">Video kaip apsipirkti</a></li>
+																																								<li><a class="header-mob-nav-list-icon header-mob-nav-list-icon--spec88 " href="dovanu-cekiai-1" title="Dovanų čekiai">Dovanų čekiai</a></li>
+																			                                </ul>
+                            </div>
+                        </li>
+                        <li>
+		                			                	                        	<a class="withsubnav header-mob-nav-list--icons-advices" href="/specialisto-patarimai" title="Specialisto patarimai">Specialisto patarimai<b>15</b></a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--advices" title="Specialisto patarimai">Specialisto patarimai</a></li>
+					                  					                							                    		<li>
+					                    			<a class="arrow" title="Pamatų įrengimas" href="/pamatu-irengimas">
+					                    				Pamatų įrengimas					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>3</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Brata dūmtraukiai" href="/brata-dumtraukiai">
+					                    				Brata dūmtraukiai					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>1</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Dažymas" href="/dazymas">
+					                    				Dažymas					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>4</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Pastatų šiltinimas" href="/pastatu-siltinimas">
+					                    				Pastatų šiltinimas					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>4</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Stoglangiai" href="/stoglangiai">
+					                    				Stoglangiai					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>1</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li>
+					                    			<a class="arrow" title="Pertvarų statyba" href="/pertvaru-statyba">
+					                    				Pertvarų statyba					                    				
+					                    									                    				
+<!--						                    			<b></b>-->
+						                    			<b>2</b>
+						                    			
+					                    			</a>
+					                    		</li>
+					                    						                                                  </ul>
+                            </div>
+                        </li>
+                        <li>
+		                			                	                        	<a class="withsubnav header-mob-nav-list--icons-about" href="/apie-mus" title="Apie mus">Apie mus</a>
+                            <div class="header-mob-nav" data-level="2">
+                                <ul class="header-mob-nav-list">
+                                    <li><a class="header-mob-nav-back header-mob-nav-list-icon header-mob-nav-list-icon--about" title="Apie mus">Apie mus</a></li>
+					                  					                							                    		<li> 
+					                    			<a class="arrow" title="Apie BAUEN" href="/apie-mus">
+						                    			Apie BAUEN					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li> 
+					                    			<a class="arrow" title="Kontaktai" href="/kontaktai">
+						                    			Kontaktai					                    			</a>
+					                    		</li>
+					                    						                  					                							                    		<li> 
+					                    			<a class="arrow fj-form-ask" title="Rašykite mums" href="/kontaktai">
+						                    			Rašykite mums					                    			</a>
+					                    		</li>
+					                    						                                                  </ul>
+                            </div>
+                        </li>
+                        
+                        <li>
+                        	                        	<a class="arrow header-mob-nav-list--icons-subscribe" title="Naujienlaiškio prenumerata" href="/naujienlaiskio-prenumerata">Naujienlaiškio prenumerata</a>
+                        </li>
+                                            </ul>
+                    <a class="header-mob-phone" href="tel:8-656-23344">8-656-23344</a>
+                    <a class="header-mob-email" href="mailto:eprekyba@bauen.lt">eprekyba@bauen.lt</a>
+                </div>
+
+</div>	</div>
+
+<ul class="links-list">
+		
+<li><a class="" href="https://www.bauen.lt/nemokamas-pristatymas" target="_self" title="Nemokas pristatymas"><img src="https://www.bauen.lt/private/uploads/images/banners/nemokamas-pristatymas.jpg" alt="Nemokas pristatymas"></a></li>
+		
+			
+<li><a class="" href="https://www.bauen.lt/pristatymas-per-1-3-dienas" target="_self" title="Pristatymas per 1 - 3 darbo dienas"><img src="https://www.bauen.lt/private/uploads/images/banners/pristatymas-per.jpg" alt="Pristatymas per 1 - 3 darbo dienas"></a></li>
+		
+			
+<li><a class="" href="https://www.bauen.lt/geriausios-kainos-garantija" target="_self" title="Kainos garantija"><img src="https://www.bauen.lt/private/uploads/images/banners/garantija.jpg" alt="Kainos garantija"></a></li>
+		
+			
+<li><a class="" href="https://www.bauen.lt/nuolaidu-kortele" target="_self" title="Gaukite nuolaidų kortelę"><img src="https://www.bauen.lt/private/uploads/images/banners/nuolaidu-kortele.jpg" alt="Gaukite nuolaidų kortelę"></a></li>
+		
+			
+<li><a class="" href="https://www.bauen.lt/statybiniu-medziagu-eksportas" target="_self" title="Video kaip apsipirkti"><img src="https://www.bauen.lt/private/uploads/images/banners/statybiniu-medziagu-eksportas.jpg" alt="Video kaip apsipirkti"></a></li>
+		
+			
+<li><a class="" href="https://www.bauen.lt/dovanu-cekiai-1" target="_self" title="Dovanų čekiai"><img src="https://www.bauen.lt/private/uploads/images/banners/dovanu-cekiai-1.jpg" alt="Dovanų čekiai"></a></li>
+		
+		</ul>
+
+<body>
+    <h1 class="pagrindinish1">Lietaus nuvedimo sistemos pasirinkimo vedlys</h1>
+    
+    <div id="imageContainer" class="image-container">
+        <!-- Image Placeholders - 34 items (6 columns x 6 rows = 36 slots) -->
+        
+        <!-- Latako dangtelis atlikta abu dydziai -->
+        <div class="image-placeholder" data-image-id="img-21" data-name="Latako dangtelis (aklė)" data-price="15.00" data-base="latako_dangtelis_3" data-url="https://bauen.lt/latako-dangtelis" data-url-small="https://www.bauen.lt/akle-universali-125mm-ral8019m-rfs" data-url-large="https://www.bauen.lt/akle-universali-150mm-ral8019d-rfs" data-url-small-tamsiruda="https://www.bauen.lt/akle-universali-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/akle-universali-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/akle-universali-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/akle-universali-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/akle-universali-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/akle-universali-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/akle-universali-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/akle-universali-125mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/akle-universali-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/akle-universali-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/akle-universali-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/akle-universali-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/akle-universali-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/akle-universali-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/akle-universali-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/akle-universali-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/akle-universali-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/akle-universali-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/akle-universali-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/akle-universali-150mm-ral9010d-rfs" style="left: 15px; top: 130px; z-index: 1;"><img src="latako_dangtelis.png" alt="Roof design 1" /></div>
+        <!-- Latako kampas isorinis atlikta abu dydziai -->
+        <div class="image-placeholder" data-image-id="img-22" data-name="Latako kampas išorinis (90°)" data-price="12.50" data-base="kampas_isorinis_2" data-url="https://bauen.lt/kampas-isorinis" data-url-small="https://bauen.lt/kampas-isorinis-small" data-url-large="https://bauen.lt/kampas-isorinis-large" data-url-small-tamsiruda="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/latako-kampas-isorinis-90-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/latako-kampas-isorinis-90-150mm-ral9010d-rfs" style="left: 80px; top: 140px; z-index: 3;"><img src="kampas_isorinis.png" alt="Roof design 1" /></div>
+        <!-- Padaryta visi dydziai -->
+        <div class="image-placeholder" data-image-id="img-23" data-name="Latakas" data-price="20.00" data-base="latakas" data-url-small-small-tamsiruda="https://www.bauen.lt/latakas-2m-125mm-ral8019m-rfs" data-url-small-small-ruda="https://www.bauen.lt/latakas-2m-125mm-ral8017m-rfs" data-url-small-small-tamsipilka="https://www.bauen.lt/latakas-2m-125mm-ral7016m-rfs" data-url-small-small-juoda="https://www.bauen.lt/latakas-2m-125mm-ral9005m-rfs" data-url-small-small-vysnine="https://www.bauen.lt/latakas-2m-125mm-ral3005m-rfs" data-url-small-small-rusvairaudona="https://www.bauen.lt/latakas-2m-125mm-ral3009m-rfs" data-url-small-small-raudona="https://www.bauen.lt/latakas-2m-125mm-ral3011m-rfs" data-url-small-small-molioraudona="https://www.bauen.lt/latakas-2m-125mm-ral8004-rfs" data-url-small-small-tamsizalia="https://www.bauen.lt/latakas-2m-125mm-ral6020m-rfs" data-url-small-small-balta="https://www.bauen.lt/latakas-2m-125mm-ral9010m-rfs" data-url-small-large-tamsiruda="https://www.bauen.lt/latakas-3m-150mm-ral8019d-rfs" data-url-small-large-ruda="https://www.bauen.lt/latakas-3m-150mm-ral8017d-rfs" data-url-small-large-tamsipilka="https://www.bauen.lt/latakas-3m-150mm-ral7016d-rfs" data-url-small-large-juoda="https://www.bauen.lt/latakas-3m-150mm-ral9005d-rfs" data-url-small-large-vysnine="https://www.bauen.lt/latakas-3m-150mm-ral3005d-rfs" data-url-small-large-rusvairaudona="https://www.bauen.lt/latakas-3m-150mm-ral3009d-rfs" data-url-small-large-raudona="https://www.bauen.lt/latakas-3m-150mm-ral3011d-rfs" data-url-small-large-molioraudona="https://www.bauen.lt/latakas-3m-150mm-ral8004d-rfs" data-url-small-large-tamsizalia="https://www.bauen.lt/latakas-3m-150mm-ral6020d-rfs" data-url-small-large-balta="https://www.bauen.lt/latakas-3m-150mm-ral9010d-rfs" data-url-medium-small-tamsiruda="https://www.bauen.lt/latakas-3m-125mm-ral8019m-rfs" data-url-medium-small-ruda="https://www.bauen.lt/latakas-3m-125mm-ral8017m-rfs" data-url-medium-small-tamsipilka="https://www.bauen.lt/latakas-3m-125mm-ral7016m-rfs" data-url-medium-small-juoda="https://www.bauen.lt/latakas-3m-125mm-ral9005m-rfs" data-url-medium-small-vysnine="https://www.bauen.lt/latakas-3m-125mm-ral3005m-rfs" data-url-medium-small-rusvairaudona="https://www.bauen.lt/latakas-3m-125mm-ral3009m-rfs" data-url-medium-small-raudona="https://www.bauen.lt/latakas-3m-125mm-ral3011m-rfs" data-url-medium-small-molioraudona="https://www.bauen.lt/latakas-3m-125mm-ral8004-rfs" data-url-medium-small-tamsizalia="https://www.bauen.lt/latakas-3m-125mm-ral6020m-rfs" data-url-medium-small-balta="https://www.bauen.lt/latakas-3m-125mm-ral9010m-rfs" data-url-medium-large-tamsiruda="https://www.bauen.lt/latakas-3m-150mm-ral8019d-rfs" data-url-medium-large-ruda="https://www.bauen.lt/latakas-3m-150mm-ral8017d-rfs" data-url-medium-large-tamsipilka="https://www.bauen.lt/latakas-3m-150mm-ral7016d-rfs" data-url-medium-large-juoda="https://www.bauen.lt/latakas-3m-150mm-ral9005d-rfs" data-url-medium-large-vysnine="https://www.bauen.lt/latakas-3m-150mm-ral3005d-rfs" data-url-medium-large-rusvairaudona="https://www.bauen.lt/latakas-3m-150mm-ral3009d-rfs" data-url-medium-large-raudona="https://www.bauen.lt/latakas-3m-150mm-ral3011d-rfs" data-url-medium-large-molioraudona="https://www.bauen.lt/latakas-3m-150mm-ral8004d-rfs" data-url-medium-large-tamsizalia="https://www.bauen.lt/latakas-3m-150mm-ral6020d-rfs" data-url-medium-large-balta="https://www.bauen.lt/latakas-3m-150mm-ral9010d-rfs" data-url-large-small-tamsiruda="https://www.bauen.lt/latakas-4m-125mm-ral8019m-rfs" data-url-large-small-ruda="https://www.bauen.lt/latakas-4m-125mm-ral8017m-rfs" data-url-large-small-tamsipilka="https://www.bauen.lt/latakas-4m-125mm-ral7016m-rfs" data-url-large-small-juoda="https://www.bauen.lt/latakas-4m-125mm-ral9005m-rfs" data-url-large-small-vysnine="https://www.bauen.lt/latakas-4m-125mm-ral3005m-rfs" data-url-large-small-rusvairaudona="https://www.bauen.lt/latakas-4m-125mm-ral3009m-rfs" data-url-large-small-raudona="https://www.bauen.lt/latakas-4m-125mm-ral3011m-rfs" data-url-large-small-molioraudona="https://www.bauen.lt/latakas-4m-125mm-ral8004-rfs" data-url-large-small-tamsizalia="https://www.bauen.lt/latakas-4m-125mm-ral6020m-rfs" data-url-large-small-balta="https://www.bauen.lt/latakas-4m-125mm-ral9010m-rfs" data-url-large-large-tamsiruda="https://www.bauen.lt/latakas-4m-150mm-ral8019d-rfs" data-url-large-large-ruda="https://www.bauen.lt/latakas-4m-150mm-ral8017d-rfs" data-url-large-large-tamsipilka="https://www.bauen.lt/latakas-4m-150mm-ral7016d-rfs" data-url-large-large-juoda="https://www.bauen.lt/latakas-4m-150mm-ral9005d-rfs" data-url-large-large-vysnine="https://www.bauen.lt/latakas-4m-150mm-ral3005d-rfs" data-url-large-large-rusvairaudona="https://www.bauen.lt/latakas-4m-150mm-ral3009d-rfs" data-url-large-large-raudona="https://www.bauen.lt/latakas-4m-150mm-ral3011d-rfs" data-url-large-large-molioraudona="https://www.bauen.lt/latakas-4m-150mm-ral8004d-rfs" data-url-large-large-tamsizalia="https://www.bauen.lt/latakas-4m-150mm-ral6020d-rfs" data-url-large-large-balta="https://www.bauen.lt/latakas-4m-150mm-ral9010d-rfs" style="left: 230px; top: 100px; z-index: 2;"><img src="latakas.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-24" data-name="Latako kampas vidinis (90°)" data-price="18.00" data-base="kampas_vidinis" data-url="https://bauen.lt/kampas-vidinis" data-url-small="https://bauen.lt/kampas-vidinis-small" data-url-large="https://bauen.lt/kampas-vidinis-large" data-url-small-tamsiruda="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/latako-kampas-vidinis-90-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/latako-kampas-vidinis-90-150mm-ral9010d-rfs" style="left: 355px; top: 68px; z-index: 1;"><img src="kampas_vidinis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-25" data-name="Universalus latako laikiklis" data-price="8.50" data-base="universalus_latako_laikiklis" data-url="https://bauen.lt/universlaus-latako-laikiklis" data-url-small="https://bauen.lt/universalus-latako-laikiklis-small" data-url-large="https://bauen.lt/universalus-latako-laikiklis-large" data-url-small-tamsiruda="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral8004m-rfs" data-url-small-tamsizalia="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/latako-laikiklis-universalus-skardinis-150mm-ral9010d-rfs" style="left: 440px; top: 90px; z-index: 2;"><img src="universalus_latako_laikiklis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-26" data-name="Latakas" data-price="22.00" data-base="latakas" data-url-small-small-tamsiruda="https://www.bauen.lt/latakas-2m-125mm-ral8019m-rfs" data-url-small-small-ruda="https://www.bauen.lt/latakas-2m-125mm-ral8017m-rfs" data-url-small-small-tamsipilka="https://www.bauen.lt/latakas-2m-125mm-ral7016m-rfs" data-url-small-small-juoda="https://www.bauen.lt/latakas-2m-125mm-ral9005m-rfs" data-url-small-small-vysnine="https://www.bauen.lt/latakas-2m-125mm-ral3005m-rfs" data-url-small-small-rusvairaudona="https://www.bauen.lt/latakas-2m-125mm-ral3009m-rfs" data-url-small-small-raudona="https://www.bauen.lt/latakas-2m-125mm-ral3011m-rfs" data-url-small-small-molioraudona="https://www.bauen.lt/latakas-2m-125mm-ral8004-rfs" data-url-small-small-tamsizalia="https://www.bauen.lt/latakas-2m-125mm-ral6020m-rfs" data-url-small-small-balta="https://www.bauen.lt/latakas-2m-125mm-ral9010m-rfs" data-url-small-large-tamsiruda="https://www.bauen.lt/latakas-3m-150mm-ral8019d-rfs" data-url-small-large-ruda="https://www.bauen.lt/latakas-3m-150mm-ral8017d-rfs" data-url-small-large-tamsipilka="https://www.bauen.lt/latakas-3m-150mm-ral7016d-rfs" data-url-small-large-juoda="https://www.bauen.lt/latakas-3m-150mm-ral9005d-rfs" data-url-small-large-vysnine="https://www.bauen.lt/latakas-3m-150mm-ral3005d-rfs" data-url-small-large-rusvairaudona="https://www.bauen.lt/latakas-3m-150mm-ral3009d-rfs" data-url-small-large-raudona="https://www.bauen.lt/latakas-3m-150mm-ral3011d-rfs" data-url-small-large-molioraudona="https://www.bauen.lt/latakas-3m-150mm-ral8004d-rfs" data-url-small-large-tamsizalia="https://www.bauen.lt/latakas-3m-150mm-ral6020d-rfs" data-url-small-large-balta="https://www.bauen.lt/latakas-3m-150mm-ral9010d-rfs" data-url-medium-small-tamsiruda="https://www.bauen.lt/latakas-3m-125mm-ral8019m-rfs" data-url-medium-small-ruda="https://www.bauen.lt/latakas-3m-125mm-ral8017m-rfs" data-url-medium-small-tamsipilka="https://www.bauen.lt/latakas-3m-125mm-ral7016m-rfs" data-url-medium-small-juoda="https://www.bauen.lt/latakas-3m-125mm-ral9005m-rfs" data-url-medium-small-vysnine="https://www.bauen.lt/latakas-3m-125mm-ral3005m-rfs" data-url-medium-small-rusvairaudona="https://www.bauen.lt/latakas-3m-125mm-ral3009m-rfs" data-url-medium-small-raudona="https://www.bauen.lt/latakas-3m-125mm-ral3011m-rfs" data-url-medium-small-molioraudona="https://www.bauen.lt/latakas-3m-125mm-ral8004-rfs" data-url-medium-small-tamsizalia="https://www.bauen.lt/latakas-3m-125mm-ral6020m-rfs" data-url-medium-small-balta="https://www.bauen.lt/latakas-3m-125mm-ral9010m-rfs" data-url-medium-large-tamsiruda="https://www.bauen.lt/latakas-3m-150mm-ral8019d-rfs" data-url-medium-large-ruda="https://www.bauen.lt/latakas-3m-150mm-ral8017d-rfs" data-url-medium-large-tamsipilka="https://www.bauen.lt/latakas-3m-150mm-ral7016d-rfs" data-url-medium-large-juoda="https://www.bauen.lt/latakas-3m-150mm-ral9005d-rfs" data-url-medium-large-vysnine="https://www.bauen.lt/latakas-3m-150mm-ral3005d-rfs" data-url-medium-large-rusvairaudona="https://www.bauen.lt/latakas-3m-150mm-ral3009d-rfs" data-url-medium-large-raudona="https://www.bauen.lt/latakas-3m-150mm-ral3011d-rfs" data-url-medium-large-molioraudona="https://www.bauen.lt/latakas-3m-150mm-ral8004d-rfs" data-url-medium-large-tamsizalia="https://www.bauen.lt/latakas-3m-150mm-ral6020d-rfs" data-url-medium-large-balta="https://www.bauen.lt/latakas-3m-150mm-ral9010d-rfs" data-url-large-small-tamsiruda="https://www.bauen.lt/latakas-4m-125mm-ral8019m-rfs" data-url-large-small-ruda="https://www.bauen.lt/latakas-4m-125mm-ral8017m-rfs" data-url-large-small-tamsipilka="https://www.bauen.lt/latakas-4m-125mm-ral7016m-rfs" data-url-large-small-juoda="https://www.bauen.lt/latakas-4m-125mm-ral9005m-rfs" data-url-large-small-vysnine="https://www.bauen.lt/latakas-4m-125mm-ral3005m-rfs" data-url-large-small-rusvairaudona="https://www.bauen.lt/latakas-4m-125mm-ral3009m-rfs" data-url-large-small-raudona="https://www.bauen.lt/latakas-4m-125mm-ral3011m-rfs" data-url-large-small-molioraudona="https://www.bauen.lt/latakas-4m-125mm-ral8004-rfs" data-url-large-small-tamsizalia="https://www.bauen.lt/latakas-4m-125mm-ral6020m-rfs" data-url-large-small-balta="https://www.bauen.lt/latakas-4m-125mm-ral9010m-rfs" data-url-large-large-tamsiruda="https://www.bauen.lt/latakas-4m-150mm-ral8019d-rfs" data-url-large-large-ruda="https://www.bauen.lt/latakas-4m-150mm-ral8017d-rfs" data-url-large-large-tamsipilka="https://www.bauen.lt/latakas-4m-150mm-ral7016d-rfs" data-url-large-large-juoda="https://www.bauen.lt/latakas-4m-150mm-ral9005d-rfs" data-url-large-large-vysnine="https://www.bauen.lt/latakas-4m-150mm-ral3005d-rfs" data-url-large-large-rusvairaudona="https://www.bauen.lt/latakas-4m-150mm-ral3009d-rfs" data-url-large-large-raudona="https://www.bauen.lt/latakas-4m-150mm-ral3011d-rfs" data-url-large-large-molioraudona="https://www.bauen.lt/latakas-4m-150mm-ral8004d-rfs" data-url-large-large-tamsizalia="https://www.bauen.lt/latakas-4m-150mm-ral6020d-rfs" data-url-large-large-balta="https://www.bauen.lt/latakas-4m-150mm-ral9010d-rfs" style="left: 530px; top: 115px; z-index: 2;"><img src="latakas_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-27" data-name="Latako jungtis" data-price="10.00" data-base="latako_jungtis" data-url="https://bauen.lt/latako-jungtis" data-url-small="https://bauen.lt/latako-jungtis-small" data-url-large="https://bauen.lt/latako-jungtis-large" data-url-small-tamsiruda="https://www.bauen.lt/latako-jungtis-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/latako-jungtis-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/latako-jungtis-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/latako-jungtis-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/latako-jungtis-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/latako-jungtis-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/latako-jungtis-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/latako-jungtis-125mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/latako-jungtis-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/latako-jungtis-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/latako-jungtis-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/latako-jungtis-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/latako-jungtis-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/latako-jungtis-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/latako-jungtis-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/latako-jungtis-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/latako-jungtis-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/latako-jungtis-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/latako-jungtis-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/latako-jungtis-150mm-ral9010d-rfs" style="left: 620px; top: 140px; z-index: 2;"><img src="latako_jungtis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-28" data-name="Stačiakampis piltuvas" data-price="25.00" data-base="staciakampis_piltuvas" data-url="https://bauen.lt/staciakampis-piltuvas" data-url-small="https://bauen.lt/staciakampis-piltuvas-small" data-url-large="https://bauen.lt/staciakampis-piltuvas-large" data-url-small-tamsiruda="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral8004m-rfs" data-url-small-tamsizalia="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/piltuvas-staciakampis-90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/piltuvas-staciakampis-100mm-ral9010d-rfs" style="left: 710px; top: 180px; z-index: 2;"><img src="staciakampis_piltuvas.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-29" data-name="Latakas" data-price="20.00" data-base="latakas" data-url-small-small-tamsiruda="https://www.bauen.lt/latakas-2m-125mm-ral8019m-rfs" data-url-small-small-ruda="https://www.bauen.lt/latakas-2m-125mm-ral8017m-rfs" data-url-small-small-tamsipilka="https://www.bauen.lt/latakas-2m-125mm-ral7016m-rfs" data-url-small-small-juoda="https://www.bauen.lt/latakas-2m-125mm-ral9005m-rfs" data-url-small-small-vysnine="https://www.bauen.lt/latakas-2m-125mm-ral3005m-rfs" data-url-small-small-rusvairaudona="https://www.bauen.lt/latakas-2m-125mm-ral3009m-rfs" data-url-small-small-raudona="https://www.bauen.lt/latakas-2m-125mm-ral3011m-rfs" data-url-small-small-molioraudona="https://www.bauen.lt/latakas-2m-125mm-ral8004-rfs" data-url-small-small-tamsizalia="https://www.bauen.lt/latakas-2m-125mm-ral6020m-rfs" data-url-small-small-balta="https://www.bauen.lt/latakas-2m-125mm-ral9010m-rfs" data-url-small-large-tamsiruda="https://www.bauen.lt/latakas-3m-150mm-ral8019d-rfs" data-url-small-large-ruda="https://www.bauen.lt/latakas-3m-150mm-ral8017d-rfs" data-url-small-large-tamsipilka="https://www.bauen.lt/latakas-3m-150mm-ral7016d-rfs" data-url-small-large-juoda="https://www.bauen.lt/latakas-3m-150mm-ral9005d-rfs" data-url-small-large-vysnine="https://www.bauen.lt/latakas-3m-150mm-ral3005d-rfs" data-url-small-large-rusvairaudona="https://www.bauen.lt/latakas-3m-150mm-ral3009d-rfs" data-url-small-large-raudona="https://www.bauen.lt/latakas-3m-150mm-ral3011d-rfs" data-url-small-large-molioraudona="https://www.bauen.lt/latakas-3m-150mm-ral8004d-rfs" data-url-small-large-tamsizalia="https://www.bauen.lt/latakas-3m-150mm-ral6020d-rfs" data-url-small-large-balta="https://www.bauen.lt/latakas-3m-150mm-ral9010d-rfs" data-url-medium-small-tamsiruda="https://www.bauen.lt/latakas-3m-125mm-ral8019m-rfs" data-url-medium-small-ruda="https://www.bauen.lt/latakas-3m-125mm-ral8017m-rfs" data-url-medium-small-tamsipilka="https://www.bauen.lt/latakas-3m-125mm-ral7016m-rfs" data-url-medium-small-juoda="https://www.bauen.lt/latakas-3m-125mm-ral9005m-rfs" data-url-medium-small-vysnine="https://www.bauen.lt/latakas-3m-125mm-ral3005m-rfs" data-url-medium-small-rusvairaudona="https://www.bauen.lt/latakas-3m-125mm-ral3009m-rfs" data-url-medium-small-raudona="https://www.bauen.lt/latakas-3m-125mm-ral3011m-rfs" data-url-medium-small-molioraudona="https://www.bauen.lt/latakas-3m-125mm-ral8004-rfs" data-url-medium-small-tamsizalia="https://www.bauen.lt/latakas-3m-125mm-ral6020m-rfs" data-url-medium-small-balta="https://www.bauen.lt/latakas-3m-125mm-ral9010m-rfs" data-url-medium-large-tamsiruda="https://www.bauen.lt/latakas-3m-150mm-ral8019d-rfs" data-url-medium-large-ruda="https://www.bauen.lt/latakas-3m-150mm-ral8017d-rfs" data-url-medium-large-tamsipilka="https://www.bauen.lt/latakas-3m-150mm-ral7016d-rfs" data-url-medium-large-juoda="https://www.bauen.lt/latakas-3m-150mm-ral9005d-rfs" data-url-medium-large-vysnine="https://www.bauen.lt/latakas-3m-150mm-ral3005d-rfs" data-url-medium-large-rusvairaudona="https://www.bauen.lt/latakas-3m-150mm-ral3009d-rfs" data-url-medium-large-raudona="https://www.bauen.lt/latakas-3m-150mm-ral3011d-rfs" data-url-medium-large-molioraudona="https://www.bauen.lt/latakas-3m-150mm-ral8004d-rfs" data-url-medium-large-tamsizalia="https://www.bauen.lt/latakas-3m-150mm-ral6020d-rfs" data-url-medium-large-balta="https://www.bauen.lt/latakas-3m-150mm-ral9010d-rfs" data-url-large-small-tamsiruda="https://www.bauen.lt/latakas-4m-125mm-ral8019m-rfs" data-url-large-small-ruda="https://www.bauen.lt/latakas-4m-125mm-ral8017m-rfs" data-url-large-small-tamsipilka="https://www.bauen.lt/latakas-4m-125mm-ral7016m-rfs" data-url-large-small-juoda="https://www.bauen.lt/latakas-4m-125mm-ral9005m-rfs" data-url-large-small-vysnine="https://www.bauen.lt/latakas-4m-125mm-ral3005m-rfs" data-url-large-small-rusvairaudona="https://www.bauen.lt/latakas-4m-125mm-ral3009m-rfs" data-url-large-small-raudona="https://www.bauen.lt/latakas-4m-125mm-ral3011m-rfs" data-url-large-small-molioraudona="https://www.bauen.lt/latakas-4m-125mm-ral8004-rfs" data-url-large-small-tamsizalia="https://www.bauen.lt/latakas-4m-125mm-ral6020m-rfs" data-url-large-small-balta="https://www.bauen.lt/latakas-4m-125mm-ral9010m-rfs" data-url-large-large-tamsiruda="https://www.bauen.lt/latakas-4m-150mm-ral8019d-rfs" data-url-large-large-ruda="https://www.bauen.lt/latakas-4m-150mm-ral8017d-rfs" data-url-large-large-tamsipilka="https://www.bauen.lt/latakas-4m-150mm-ral7016d-rfs" data-url-large-large-juoda="https://www.bauen.lt/latakas-4m-150mm-ral9005d-rfs" data-url-large-large-vysnine="https://www.bauen.lt/latakas-4m-150mm-ral3005d-rfs" data-url-large-large-rusvairaudona="https://www.bauen.lt/latakas-4m-150mm-ral3009d-rfs" data-url-large-large-raudona="https://www.bauen.lt/latakas-4m-150mm-ral3011d-rfs" data-url-large-large-molioraudona="https://www.bauen.lt/latakas-4m-150mm-ral8004d-rfs" data-url-large-large-tamsizalia="https://www.bauen.lt/latakas-4m-150mm-ral6020d-rfs" data-url-large-large-balta="https://www.bauen.lt/latakas-4m-150mm-ral9010d-rfs" style="left: 850px; top: 210px; z-index: 2;"><img src="latakas_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-30" data-name="Latako dangtelis (aklė)" data-price="16.00" data-base="latako_dangtelis_2" data-url="https://bauen.lt/latako-dangtelis-2" data-url-small="https://bauen.lt/latako-dangtelis-2-small" data-url-large="https://bauen.lt/latako-dangtelis-2-large" data-url-small-tamsiruda="https://www.bauen.lt/akle-universali-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/akle-universali-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/akle-universali-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/akle-universali-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/akle-universali-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/akle-universali-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/akle-universali-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/akle-universali-125mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/akle-universali-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/akle-universali-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/akle-universali-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/akle-universali-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/akle-universali-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/akle-universali-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/akle-universali-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/akle-universali-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/akle-universali-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/akle-universali-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/akle-universali-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/akle-universali-150mm-ral9010d-rfs" style="left: 940px; top: 235px; z-index: 2;"><img src="latako_dangtelis_2.png" alt="Roof design 1" /></div>
+        <!-- Latako laikiklis atlikta abu dydziai -->
+        <div class="image-placeholder" data-image-id="img-31" data-name="Latako laikiklis" data-price="9.00" data-base="latako_laikiklis" data-url="https://bauen.lt/latako-laikiklis" data-url-small="https://bauen.lt/latako-laikiklis-small" data-url-large="https://bauen.lt/latako-laikiklis-large" data-url-small-tamsiruda="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral8004m-rfs" data-url-small-tamsizalia="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-125mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/latako-laikiklis-ilgas-185mm-150mm-ral9010d-rfs" style="left: 150px; top: 100px; z-index: 2;"><img src="latako_laikiklis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-32" data-name="Santaka - nuolaja" data-price="30.00" data-base="ilaja" data-url="https://bauen.lt/ilaja" data-url-small="https://bauen.lt/ilaja-small" data-url-large="https://bauen.lt/ilaja-large" data-url-small-tamsiruda="https://www.bauen.lt/santaka-125mm-fi90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/santaka-125mm-fi90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/santaka-125mm-fi90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/santaka-125mm-fi90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/santaka-125mm-fi90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/santaka-125mm-fi90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/santaka-125mm-fi90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/santaka-125mm-fi90mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/santaka-125mm-fi90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/santaka-125mm-fi90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/santaka-150mm-fi100mm-ral8009d-rfs" data-url-large-ruda="https://www.bauen.lt/santaka-150mm-fi90mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/santaka-150mm-fi90mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/santaka-150mm-fi100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/santaka-150mm-fi100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/santaka-150mm-fi100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/santaka-150mm-fi100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/santaka-150mm-fi100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/santaka-150mm-fi100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/santaka-150mm-fi100mm-ral9010d-rfs" style="left: 520px; top: 160px; z-index: 1;"><img src="ilaja.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-33" data-name="Lietvamzdžio alkūnė (60°)" data-price="14.00" data-base="lietvamzdio_alkune_60" data-url="https://bauen.lt/lietvamzdio-alkune-60" data-url-small="https://bauen.lt/lietvamzdio-alkune-60-small" data-url-large="https://bauen.lt/lietvamzdio-alkune-60-large" data-url-small-tamsiruda="https://www.bauen.lt/alkune-virsutine-90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/alkune-virsutine-90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/alkune-virsutine-90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/alkune-virsutine-90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/alkune-virsutine-90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/alkune-virsutine-90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/alkune-virsutine-90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/alkune-virsutine-90mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/alkune-virsutine-90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/alkune-virsutine-90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/alkune-virsutine-100mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/alkune-virsutine-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/alkune-virsutine-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/alkune-virsutine-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/alkune-virsutine-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/alkune-virsutine-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/alkune-virsutine-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/alkune-virsutine-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/alkune-virsutine-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/alkune-virsutine-100mm-ral9010d-rfs" style="left: 530px; top: 255px; z-index: 1;"><img src="lietvamzdio_alkune_60.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-34" data-name="Lietvamzdis" data-price="11.50" data-base="lietvamzdis_1m" data-url="https://bauen.lt/lietvamzdis-1m" data-url-small="https://bauen.lt/lietvamzdis-1m-small" data-url-large="https://bauen.lt/lietvamzdis-1m-large" data-url-small-small-tamsiruda="https://www.bauen.lt/lietvamzdis-1m-90mm-ral8019m-rfs" data-url-small-small-ruda="https://www.bauen.lt/lietvamzdis-1m-90mm-ral8017m-rfs" data-url-small-small-tamsipilka="https://www.bauen.lt/lietvamzdis-1m-90mm-ral7016m-rfs" data-url-small-small-juoda="https://www.bauen.lt/lietvamzdis-1m-90mm-ral9005m-rfs" data-url-small-small-vysnine="https://www.bauen.lt/lietvamzdis-1m-90mm-ral3005m-rfs" data-url-small-small-rusvairaudona="https://www.bauen.lt/lietvamzdis-1m-90mm-ral3009m-rfs" data-url-small-small-raudona="https://www.bauen.lt/lietvamzdis-1m-90mm-ral3011m-rfs" data-url-small-small-molioraudona="https://www.bauen.lt/lietvamzdis-1m-90mm-ral8004-rfs" data-url-small-small-tamsizalia="https://www.bauen.lt/lietvamzdis-1m-90mm-ral6020m-rfs" data-url-small-small-balta="https://www.bauen.lt/lietvamzdis-1m-90mm-ral9010m-rfs" data-url-small-large-tamsiruda="https://www.bauen.lt/lietvamzdis-1m-100mm-ral8019d-rfs" data-url-small-large-ruda="https://www.bauen.lt/lietvamzdis-1m-100mm-ral8017d-rfs" data-url-small-large-tamsipilka="https://www.bauen.lt/lietvamzdis-1m-100mm-ral7016d-rfs" data-url-small-large-juoda="https://www.bauen.lt/lietvamzdis-1m-100mm-ral9005d-rfs" data-url-small-large-vysnine="https://www.bauen.lt/lietvamzdis-1m-100mm-ral3005d-rfs" data-url-small-large-rusvairaudona="https://www.bauen.lt/lietvamzdis-1m-100mm-ral3009d-rfs" data-url-small-large-raudona="https://www.bauen.lt/lietvamzdis-1m-100mm-ral3011d-rfs" data-url-small-large-molioraudona="https://www.bauen.lt/lietvamzdis-1m-100mm-ral8004d-rfs" data-url-small-large-tamsizalia="https://www.bauen.lt/lietvamzdis-1m-100mm-ral6020d-rfs" data-url-small-large-balta="https://www.bauen.lt/lietvamzdis-1m-100mm-ral9010d-rfs" data-url-medium-small-tamsiruda="https://www.bauen.lt/lietvamzdis-3m-90mm-ral8019m-rfs" data-url-medium-small-ruda="https://www.bauen.lt/lietvamzdis-3m-90mm-ral8017m-rfs" data-url-medium-small-tamsipilka="https://www.bauen.lt/lietvamzdis-3m-90mm-ral7016m-rfs" data-url-medium-small-juoda="https://www.bauen.lt/lietvamzdis-3m-90mm-ral9005m-rfs" data-url-medium-small-vysnine="https://www.bauen.lt/lietvamzdis-3m-90mm-ral3005m-rfs" data-url-medium-small-rusvairaudona="https://www.bauen.lt/lietvamzdis-3m-90mm-ral3009m-rfs" data-url-medium-small-raudona="https://www.bauen.lt/lietvamzdis-3m-90mm-ral3011m-rfs" data-url-medium-small-molioraudona="https://www.bauen.lt/lietvamzdis-3m-90mm-ral8004-rfs" data-url-medium-small-tamsizalia="https://www.bauen.lt/lietvamzdis-3m-90mm-ral6020m-rfs" data-url-medium-small-balta="https://www.bauen.lt/lietvamzdis-3m-90mm-ral9010m-rfs" data-url-medium-large-tamsiruda="https://www.bauen.lt/lietvamzdis-3m-100mm-ral8019d-rfs" data-url-medium-large-ruda="https://www.bauen.lt/lietvamzdis-3m-100mm-ral8017d-rfs" data-url-medium-large-tamsipilka="https://www.bauen.lt/lietvamzdis-3m-100mm-ral7016d-rfs" data-url-medium-large-juoda="https://www.bauen.lt/lietvamzdis-3m-100mm-ral9005d-rfs" data-url-medium-large-vysnine="https://www.bauen.lt/lietvamzdis-3m-100mm-ral3005d-rfs" data-url-medium-large-rusvairaudona="https://www.bauen.lt/lietvamzdis-3m-100mm-ral3009d-rfs" data-url-medium-large-raudona="https://www.bauen.lt/lietvamzdis-3m-100mm-ral3011d-rfs" data-url-medium-large-molioraudona="https://www.bauen.lt/lietvamzdis-3m-100mm-ral8004d-rfs" data-url-medium-large-tamsizalia="https://www.bauen.lt/lietvamzdis-3m-100mm-ral6020d-rfs" data-url-medium-large-balta="https://www.bauen.lt/lietvamzdis-3m-100mm-ral9010d-rfs" style="left: 580px; top: 320px; z-index: 1;"><img src="lietvamzdis_1m.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-35" data-name="Lietvamzdžio alkūnė (60°)" data-price="14.00" data-base="lietvamzdio_alkune_60" data-url="https://bauen.lt/lietvamzdio-alkune-60-2" data-url-small="https://bauen.lt/lietvamzdio-alkune-60-2-small" data-url-large="https://bauen.lt/lietvamzdio-alkune-60-2-large" data-url-small-tamsiruda="https://www.bauen.lt/alkune-virsutine-90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/alkune-virsutine-90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/alkune-virsutine-90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/alkune-virsutine-90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/alkune-virsutine-90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/alkune-virsutine-90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/alkune-virsutine-90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/alkune-virsutine-90mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/alkune-virsutine-90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/alkune-virsutine-90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/alkune-virsutine-100mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/alkune-virsutine-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/alkune-virsutine-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/alkune-virsutine-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/alkune-virsutine-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/alkune-virsutine-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/alkune-virsutine-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/alkune-virsutine-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/alkune-virsutine-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/alkune-virsutine-100mm-ral9010d-rfs" style="left: 630px; top: 385px; z-index: 1;"><img src="lietvamzdio_alkune_60_2.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-36" data-name="Lietvamzdžio laikiklis" data-price="7.50" data-base="lietvamzdzio_laikiklis" data-url="https://bauen.lt/lietvamzdio-laikiklis" data-url-small="https://bauen.lt/lietvamzdio-laikiklis-small" data-url-large="https://bauen.lt/lietvamzdio-laikiklis-large" data-url-small-tamsiruda="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral8004m-rfs" data-url-small-tamsizalia="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/lietvamzdzio-laikiklis-i-medi-100mm-ral9010d-rfs" style="left: 650px; top: 455px; z-index: 1;"><img src="lietvamzdzio_laikiklis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-37" data-name="Lietvamzdis" data-price="28.00" data-base="lietvamzdis_1m" data-url="https://bauen.lt/lietvamzdis-3m" data-url-small="https://bauen.lt/lietvamzdis-3m-small" data-url-large="https://bauen.lt/lietvamzdis-3m-large" data-url-small-small-tamsiruda="https://www.bauen.lt/lietvamzdis-1m-90mm-ral8019m-rfs" data-url-small-small-ruda="https://www.bauen.lt/lietvamzdis-1m-90mm-ral8017m-rfs" data-url-small-small-tamsipilka="https://www.bauen.lt/lietvamzdis-1m-90mm-ral7016m-rfs" data-url-small-small-juoda="https://www.bauen.lt/lietvamzdis-1m-90mm-ral9005m-rfs" data-url-small-small-vysnine="https://www.bauen.lt/lietvamzdis-1m-90mm-ral3005m-rfs" data-url-small-small-rusvairaudona="https://www.bauen.lt/lietvamzdis-1m-90mm-ral3009m-rfs" data-url-small-small-raudona="https://www.bauen.lt/lietvamzdis-1m-90mm-ral3011m-rfs" data-url-small-small-molioraudona="https://www.bauen.lt/lietvamzdis-1m-90mm-ral8004-rfs" data-url-small-small-tamsizalia="https://www.bauen.lt/lietvamzdis-1m-90mm-ral6020m-rfs" data-url-small-small-balta="https://www.bauen.lt/lietvamzdis-1m-90mm-ral9010m-rfs" data-url-small-large-tamsiruda="https://www.bauen.lt/lietvamzdis-1m-100mm-ral8019d-rfs" data-url-small-large-ruda="https://www.bauen.lt/lietvamzdis-1m-100mm-ral8017d-rfs" data-url-small-large-tamsipilka="https://www.bauen.lt/lietvamzdis-1m-100mm-ral7016d-rfs" data-url-small-large-juoda="https://www.bauen.lt/lietvamzdis-1m-100mm-ral9005d-rfs" data-url-small-large-vysnine="https://www.bauen.lt/lietvamzdis-1m-100mm-ral3005d-rfs" data-url-small-large-rusvairaudona="https://www.bauen.lt/lietvamzdis-1m-100mm-ral3009d-rfs" data-url-small-large-raudona="https://www.bauen.lt/lietvamzdis-1m-100mm-ral3011d-rfs" data-url-small-large-molioraudona="https://www.bauen.lt/lietvamzdis-1m-100mm-ral8004d-rfs" data-url-small-large-tamsizalia="https://www.bauen.lt/lietvamzdis-1m-100mm-ral6020d-rfs" data-url-small-large-balta="https://www.bauen.lt/lietvamzdis-1m-100mm-ral9010d-rfs" data-url-medium-small-tamsiruda="https://www.bauen.lt/lietvamzdis-3m-90mm-ral8019m-rfs" data-url-medium-small-ruda="https://www.bauen.lt/lietvamzdis-3m-90mm-ral8017m-rfs" data-url-medium-small-tamsipilka="https://www.bauen.lt/lietvamzdis-3m-90mm-ral7016m-rfs" data-url-medium-small-juoda="https://www.bauen.lt/lietvamzdis-3m-90mm-ral9005m-rfs" data-url-medium-small-vysnine="https://www.bauen.lt/lietvamzdis-3m-90mm-ral3005m-rfs" data-url-medium-small-rusvairaudona="https://www.bauen.lt/lietvamzdis-3m-90mm-ral3009m-rfs" data-url-medium-small-raudona="https://www.bauen.lt/lietvamzdis-3m-90mm-ral3011m-rfs" data-url-medium-small-molioraudona="https://www.bauen.lt/lietvamzdis-3m-90mm-ral8004-rfs" data-url-medium-small-tamsizalia="https://www.bauen.lt/lietvamzdis-3m-90mm-ral6020m-rfs" data-url-medium-small-balta="https://www.bauen.lt/lietvamzdis-3m-90mm-ral9010m-rfs" data-url-medium-large-tamsiruda="https://www.bauen.lt/lietvamzdis-3m-100mm-ral8019d-rfs" data-url-medium-large-ruda="https://www.bauen.lt/lietvamzdis-3m-100mm-ral8017d-rfs" data-url-medium-large-tamsipilka="https://www.bauen.lt/lietvamzdis-3m-100mm-ral7016d-rfs" data-url-medium-large-juoda="https://www.bauen.lt/lietvamzdis-3m-100mm-ral9005d-rfs" data-url-medium-large-vysnine="https://www.bauen.lt/lietvamzdis-3m-100mm-ral3005d-rfs" data-url-medium-large-rusvairaudona="https://www.bauen.lt/lietvamzdis-3m-100mm-ral3009d-rfs" data-url-medium-large-raudona="https://www.bauen.lt/lietvamzdis-3m-100mm-ral3011d-rfs" data-url-medium-large-molioraudona="https://www.bauen.lt/lietvamzdis-3m-100mm-ral8004d-rfs" data-url-medium-large-tamsizalia="https://www.bauen.lt/lietvamzdis-3m-100mm-ral6020d-rfs" data-url-medium-large-balta="https://www.bauen.lt/lietvamzdis-3m-100mm-ral9010d-rfs" style="left: 640px; top: 520px; z-index: 1;"><img src="lietvamzdis_3m.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-38" data-name="Lietvamzdžio trišakis" data-price="19.00" data-base="lietvamzdio_trisakis" data-url="https://bauen.lt/lietvamzdio-trisakis" data-url-small="https://bauen.lt/lietvamzdio-trisakis-small" data-url-large="https://bauen.lt/lietvamzdio-trisakis-large" data-url-small-tamsiruda="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral3005-rfs" data-url-small-molioraudona="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/lietvamzdzio-trisakis-125mm-fi90-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/lietvamzdzio-trisakis-100mm-ral9010d-rfs" style="left: 628px; top: 625px; z-index: 1"><img src="lietvamzdio_trisakis.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-39" data-name="Vandens skirstytuvas" data-price="24.00" data-base="vandens_skirstytuvas" data-url="https://bauen.lt/vandens-skirstytuvas" data-url-small="https://bauen.lt/vandens-skirstytuvas-small" data-url-large="https://bauen.lt/vandens-skirstytuvas-large" data-url-small-tamsiruda="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral8004m-rfs" data-url-small-tamsizalia="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/vandens-skirstytuvas-90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral8009d-rfs" data-url-large-ruda="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/vandens-skirstytuvas-100mm-ral9010d-rfs" style="left: 622px; top: 750px; z-index: 1"><img src="vandens_skirstytuvas.png" alt="Roof design 1" /></div>
+        <div class="image-placeholder" data-image-id="img-40" data-name="Lietvamzdžio apatinė alkūnė (60°)" data-price="13.50" data-base="lietvamzdzio_apatine_alkune_60" data-url="https://bauen.lt/lietvamzdio-apatine-alkune-60" data-url-small="https://bauen.lt/lietvamzdio-apatine-alkune-60-small" data-url-large="https://bauen.lt/lietvamzdio-apatine-alkune-60-large" data-url-small-tamsiruda="https://www.bauen.lt/alkune-apatine-90mm-ral8019m-rfs" data-url-small-ruda="https://www.bauen.lt/alkune-apatine-90mm-ral8017m-rfs" data-url-small-tamsipilka="https://www.bauen.lt/alkune-apatine-90mm-ral7016m-rfs" data-url-small-juoda="https://www.bauen.lt/alkune-apatine-90mm-ral9005m-rfs" data-url-small-vysnine="https://www.bauen.lt/alkune-apatine-90mm-ral3005m-rfs" data-url-small-rusvairaudona="https://www.bauen.lt/alkune-apatine-90mm-ral3009m-rfs" data-url-small-raudona="https://www.bauen.lt/alkune-apatine-90mm-ral3011m-rfs" data-url-small-molioraudona="https://www.bauen.lt/alkune-apatine-90mm-ral8004-rfs" data-url-small-tamsizalia="https://www.bauen.lt/alkune-apatine-90mm-ral6020m-rfs" data-url-small-balta="https://www.bauen.lt/alkune-apatine-90mm-ral9010m-rfs" data-url-large-tamsiruda="https://www.bauen.lt/alkune-apatine-100mm-ral8019d-rfs" data-url-large-ruda="https://www.bauen.lt/alkune-apatine-100mm-ral8017d-rfs" data-url-large-tamsipilka="https://www.bauen.lt/alkune-apatine-100mm-ral7016d-rfs" data-url-large-juoda="https://www.bauen.lt/alkune-apatine-100mm-ral9005d-rfs" data-url-large-vysnine="https://www.bauen.lt/alkune-apatine-100mm-ral3005d-rfs" data-url-large-rusvairaudona="https://www.bauen.lt/alkune-apatine-100mm-ral3009d-rfs" data-url-large-raudona="https://www.bauen.lt/alkune-apatine-100mm-ral3011d-rfs" data-url-large-molioraudona="https://www.bauen.lt/alkune-apatine-100mm-ral8004d-rfs" data-url-large-tamsizalia="https://www.bauen.lt/alkune-apatine-100mm-ral6020d-rfs" data-url-large-balta="https://www.bauen.lt/alkune-apatine-100mm-ral9010d-rfs" style="left: 630px; top: 860px; z-index: 1"><img src="lietvamzdzio_apatine_alkune_60.png" alt="Roof design 1" /></div>
+    </div>
+    
+    <div id="imageModal" class="modal">
+            <div class="modal-content">
+                <h2> <span id="itemName">&nbsp;</span></h2>
+            
+            <div class="size-selection">
+                <label for="itemSize">Ilgis:</label>
+                <select id="itemSize">
+                    <option value="small">2 m.</option>
+                    <option value="medium">3 m.</option>
+                </select>
+            </div>
+
+            <div class="modal-filters">
+                <h3>Filtrai</h3>
+                <div>
+                    <label for="modalSize"><strong>Sistemos dydis</strong></label>
+                    <select id="modalSize">
+                        <option value="">Pasirinkti dydį</option>
+                        <option value="small">125/90 mm.</option>
+                        <option value="large">150/100 mm.</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="modalColor"><strong>Spalva</strong></label>
+                    <select id="modalColor">
+                        <option value="">Pasirinkti spalvą</option>
+                        <option value="tamsiruda">Tams. ruda (RAL8019)</option>
+                        <option value="ruda">Ruda (RAL8017)</option>
+                        <option value="tamsipilka">Tams. pilka (RAL7016)</option>
+                        <option value="juoda">Juoda (RAL9005)</option>
+                        <option value="vysnine">Vyšninė (RAL3005)</option>
+                        <option value="rusvairaudona">Rusvai raudona (RAL3009)</option>
+                        <option value="raudona">Raudona (RAL3011)</option>
+                        <option value="molioraudona">Molio raudona (RAL8004)</option>
+                        <option value="tamsizalia">Žalia (RAL6020)</option>
+                        <option value="balta">Balta (RAL9010)</option>
+                    </select>
+                </div>
+            </div>
+            <div id="comboWarning" style="color:red; display:none; margin-top:10px;">*150/100mm., sistemoje galimi tik 3m. ir 4m. ilgiai</div>
+            
+            <div style="margin-bottom: 20px;">
+                <a id="itemUrl" href="#" target="_blank" class="modal-catalog-btn">Peržiūrėti kataloge</a>
+            </div>
+            
+            <button class="cancel-btn" id="cancelBtn">Atšaukti</button>
+        </div>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div id="welcomeModal" class="welcome-modal">
+        <div class="welcome-modal-content">
+            <div class="welcomemodalcontentlogo"></div>
+            <h2>Sveiki atvykę į lietaus nuvedimo sistemos pasirinkimo vedlį!</h2>
+            <p>Šis įrankis padės jums lengvai pasirinkti tinkamus lietaus nuvedimo sistemos elementus jūsų stogui.</p>
+            <p><strong>Kaip naudotis:</strong></p>
+            <ul>
+                <li>Spustelėkite ant norimo elemento paveikslėlio, kad pradėtumėte pasirinkimą.</li>
+                <li>Pasirinkite sistemos dydį ir spalvą iš filtro parinkčių.</li>
+                <li>Spustelėkite "Peržiūrėti kataloge", kad pamatytumėte daugiau informacijos apie produktą.</li>
+            </ul>
+            <p>Jei turite klausimų, susisiekite su mumis telefonu <b>8-656-23344</b> arba el. <b>eprekyba@bauen.lt</b>.</p>
+            <button id="welcomeCloseBtn" style="color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Supratau</button>
+        </div>
+    </div>
+
+    <div class="support-block-long">
+        <h3 class="support-block-long-title">Specialisto patarimai</h3>
+                                                    <ul class="support-nav">
+                                <li><a href="https://www.bauen.lt/pamatu-irengimas" title="Pamatų įrengimas">Pamatų įrengimas</a></li>
+                                                        <li><a href="https://www.bauen.lt/brata-dumtraukiai" title="Brata dūmtraukiai">Brata dūmtraukiai</a></li>
+                                                        </ul>                <ul class="support-nav">
+                                <li><a href="https://www.bauen.lt/dazymas" title="Dažymas">Dažymas</a></li>
+                                                        <li><a href="https://www.bauen.lt/pastatu-siltinimas" title="Pastatų šiltinimas">Pastatų šiltinimas</a></li>
+                                                        </ul>                <ul class="support-nav">
+                                <li><a href="https://www.bauen.lt/stoglangiai" title="Stoglangiai">Stoglangiai</a></li>
+                                                        <li><a href="https://www.bauen.lt/pertvaru-statyba" title="Pertvarų statyba">Pertvarų statyba</a></li>
+                                    </ul>
+        <div class="support-block">
+            <b>15</b>
+             straipsnių<br>
+            <a class="btn btn--primary fj-form-ask">Klausti</a>
+        </div>
+    </div>
+
+    
+    <div class="footer visible-desktop">
+
+    <div class="wrapper">
+
+    
+
+   <div class="footer-top">
+
+            
+           
+
+                
+                <ul class="footer-top-left">
+
+                	
+
+                      
+    <li>
+    	<a class="" title="Apie mus" href="https://www.bauen.lt/apie-mus" target="_self " onclick=" javascript: $(this).parent().css('zIndex', 200 - $($(this).parent()).index()).find('.footer-subnav').fadeIn(); return false;">Apie mus</a>
+    	    		<div class="footer-subnav">
+    			<a href="javascript:;" onclick="javascript: $(this).closest('li').css('zIndex', 110).find('.footer-subnav').fadeOut();" class="footer-subnav-close">uzdaryti</a>
+    			<strong class="footer-subnav-title">Apie mus</strong>
+    			<ul class="footer-subnav-list">
+	    				    				<li><a title="Apie BAUEN" href="/apie-mus" class="footer-subnav-settings ">Apie BAUEN</a></li>
+	    				    				<li><a title="Kontaktai" href="/kontaktai" class="footer-subnav-settings ">Kontaktai</a></li>
+	    				    				<li><a title="Rašykite mums" href="/kontaktai" class="footer-subnav-settings fj-form-ask">Rašykite mums</a></li>
+	    			    			</ul>
+    		</div>
+    	    </li>
+    
+    <li>
+    	<a class="" title="Kontaktai" href="https://www.bauen.lt/kontaktai" target="_self " onclick=" javascript: $(this).parent().css('zIndex', 200 - $($(this).parent()).index()).find('.footer-subnav').fadeIn(); return false;">Kontaktai</a>
+    	    		<div class="footer-subnav">
+    			<a href="javascript:;" onclick="javascript: $(this).closest('li').css('zIndex', 110).find('.footer-subnav').fadeOut();" class="footer-subnav-close">uzdaryti</a>
+    			<strong class="footer-subnav-title">Vartotojams</strong>
+    			<ul class="footer-subnav-list">
+	    				    				<li><a title="Prisijungti" href="/prisijungti" class="footer-subnav-settings ">Prisijungti</a></li>
+	    				    				<li><a title="Registruotis" href="/registruotis" class="footer-subnav-settings ">Registruotis</a></li>
+	    				    				<li><a title="Priminti slaptažodį" href="/prisijungti?remind=1" class="footer-subnav-settings ">Priminti slaptažodį</a></li>
+	    				    				<li><a title="Prekių krepšelis" href="/prekiu-krepselis" class="footer-subnav-settings ">Prekių krepšelis</a></li>
+	    				    				<li><a title="Patinkančios prekės" href="/patinkancios-prekes" class="footer-subnav-settings ">Patinkančios prekės</a></li>
+	    				    				<li><a title="Žiūrėtos prekės" href="/mano/ziuretos-prekes" class="footer-subnav-settings ">Žiūrėtos prekės</a></li>
+	    			    			</ul>
+    		</div>
+    	    </li>
+                                                        
+
+                
+
+                </ul>
+
+                    
+
+                
+            
+           
+
+                
+                <ul class="footer-top-mid">
+
+                	
+
+                      
+    <li>
+    	<a class="footer-top-mid-support" title="Pagalba" href="https://www.bauen.lt/pagalba" target="_self " onclick=" ">Pagalba</a>
+    	    </li>
+    
+    <li>
+    	<a class="" title="Naudojimosi taisyklės" href="https://www.bauen.lt/naudojimosi-taisykles" target="_self " onclick=" ">Naudojimosi taisyklės</a>
+    	    </li>
+    
+    <li>
+    	<a class="" title="Grąžinimo sąlygos" href="https://www.bauen.lt/keitimas-ir-grazinimas" target="_self " onclick=" ">Grąžinimo sąlygos</a>
+    	    </li>
+    
+    <li>
+    	<a class="" title="Privatumo politika" href="https://www.bauen.lt/privatumo-politika" target="_self " onclick=" ">Privatumo politika</a>
+    	    </li>
+    
+    <li>
+    	<a class="" title="Garantija" href="https://www.bauen.lt/garantinis-aptarnavimas" target="_self " onclick=" ">Garantija</a>
+    	    </li>
+    
+    <li>
+    	<a class="" title="D.U.K." href="https://www.bauen.lt/dazniausiai-uzduodami-klausimai-duk" target="_self " onclick=" ">D.U.K.</a>
+    	    </li>
+                                                        
+
+                
+
+                </ul>
+
+                    
+
+                
+              
+
+            <ul class="footer-top-right">
+
+							<li class="footer-top-right-phone"><img src="https://www.bauen.lt/resources/img/icon-phone.png" alt="">8-656-23344</li>
+
+							<li><a href="mailto:eprekyba@bauen.lt">eprekyba@bauen.lt</a></li>
+
+						</ul> 
+
+            </div>
+
+            
+
+        
+						<div class="footer-social dbg">
+<!-- AddThis Button BEGIN -->
+<div class="addthis_toolbox addthis_default_style">
+<a class="addthis_button_facebook_like" fb:like:layout="button_count" addthis:url="https://www.facebook.com/Bauen.lt"></a>
+<a class="addthis_button_tweet" style="width:80px;"></a>
+<a class="addthis_button_google_plusone" g:plusone:size="medium" style="width: 63px"></a>
+<a class="addthis_counter addthis_pill_style"></a>
+</div>
+<script type="text/javascript">var addthis_config = addthis_config||{};
+addthis_config.data_track_addressbar = false;</script>
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-519318171df72b97"></script>
+<!-- AddThis Button END -->
+
+</div>
+
+	
+
+		
+					
+
+    <div class="footer-copyright">
+
+    	<p>© 2009-2026 UAB „BAUEN”, www.bauen.lt. Visos teisės saugomos. <a href="https://www.bauen.lt/privatumo-politika">Privatumo politika</a>. Statybinės medžiagos, apdailos medžiagos, darbo įrankiai, santechnikos prekės, elektros prekės, interjerui, eksterjerui ir kt.</p>
+<p>Internetinė statybinių medžiagų prekyba. Be UAB „BAUEN” sutikimo draudžiama kopijuoti ir platinti svetainėje esančią informaciją.</p>
+    </div>
+
+    
+
+    
+
+
+
+        <div class="footer-owexx">
+
+        
+
+            <a title="OWEXX hosting - interneto svetainių talpinimas" href="http://www.owexxhosting.com">Svetainių talpinimas: <img src="https://www.bauen.lt/resources/img/owexx-hosting.png" alt="OWEXX hosting"></a>
+						<a title="Interneto svetainių kūrimas" href="http://www.owexx.com">Interneto svetainių kūrimas: <img src="https://www.bauen.lt/resources/img/owexx.png" alt="Interneto svetainių kūrimas"></a>
+ </div>
+
+ 
+
+ <div class="footer-banks">
+
+ 	<p>COMODO SSL 256 bit saugumo sistema garantuoja, kad Jūsų mokėjimas yra saugus bei apdraustas, todėl pirkti galite be jokios rizikos, kad prarasite savo lėšas.</p>
+ </div>
+
+       <div class="footer-bestbuy" style="display: none;">
+
+            <a href="/resources/BestBuy Award.pdf" target="_blank">
+
+                <img src="/resources/img/best-buy-award-logo.png">
+
+            </a>
+
+       </div>
+
+        <div class="instagram-link"><a href="https://www.instagram.com/bauen_statybines_medziagos/" target="_blank" title="@bauen_statybines_medziagos"><img src="https://www.bauen.lt/resources/img/igapplogo.png" alt="Instagram logo"></a></div>
+
+        </div>
+
+        </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
