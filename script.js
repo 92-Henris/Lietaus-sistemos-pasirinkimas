@@ -11,10 +11,71 @@ const imageUpload = document.getElementById('imageUpload');
 const resetBtn = document.getElementById('resetBtn');
 const imageContainer = document.getElementById('imageContainer');
 const imageModal = document.getElementById('imageModal');
-const quantityInput = document.getElementById('quantity');
 const itemSizeSelect = document.getElementById('itemSize');
-const addToCartBtn = document.getElementById('addToCartBtn');
+const modalSizeSelect = document.getElementById('modalSize');
+const modalColorSelect = document.getElementById('modalColor');
+const comboWarning = document.getElementById('comboWarning');
 const cancelBtn = document.getElementById('cancelBtn');
+const itemUrlEl = document.getElementById('itemUrl');
+const welcomeModal = document.getElementById('welcomeModal');
+const welcomeCloseBtn = document.getElementById('welcomeCloseBtn');
+
+function checkCombination() {
+    if (!comboWarning || !selectedImage) return;
+    const len = itemSizeSelect ? itemSizeSelect.value : '';
+    const size = modalSizeSelect ? modalSizeSelect.value : '';
+    // only warn for 2m (small) + 150/100 (large) on specified items
+    if ((selectedImage.dataset.name === 'Latakas' || selectedImage.dataset.name === 'Latakas 2') &&
+        len === 'small' && size === 'large') {
+        comboWarning.style.display = 'block';
+    } else {
+        comboWarning.style.display = 'none';
+    }
+}
+
+function updateProductUrlBySize() {
+    if (!itemUrlEl || !selectedImage) return;
+
+    const length = itemSizeSelect ? (itemSizeSelect.value || '').trim().toLowerCase() : '';
+    const size = modalSizeSelect ? (modalSizeSelect.value || '').trim().toLowerCase() : '';
+    const color = modalColorSelect ? (modalColorSelect.value || '').trim().toLowerCase() : '';
+
+    // Use the base URL by default (if any), but later override with the most specific match.
+    let url = selectedImage.dataset.url || '#';
+
+    const sizeEnabledItems = ['Latakas', 'Latakas 2', 'Lietvamzdis'];
+    const isLengthEnabled = sizeEnabledItems.includes(selectedImage.dataset.name);
+
+    const buildDataKey = (...parts) => `data-url-${parts.filter(Boolean).join('-')}`;
+
+    const dataKeys = [];
+    if (isLengthEnabled && length && size && color) dataKeys.push(buildDataKey(length, size, color));
+    if (isLengthEnabled && length && size) dataKeys.push(buildDataKey(length, size));
+    if (isLengthEnabled && length) dataKeys.push(buildDataKey(length));
+    if (size && color) dataKeys.push(buildDataKey(size, color));
+    if (size) dataKeys.push(buildDataKey(size));
+
+    const getDatasetValue = (key) => {
+        // Convert a data- attribute key like "data-url-small-tamsiruda" to a dataset property name.
+        const datasetKey = key
+            .replace(/^data-/, '')
+            .split('-')
+            .map((segment, index) => index === 0 ? segment : segment.charAt(0).toUpperCase() + segment.slice(1))
+            .join('');
+        return selectedImage.dataset[datasetKey];
+    };
+
+    for (const key of dataKeys) {
+        const candidate = getDatasetValue(key);
+        if (candidate) {
+            url = candidate;
+            break;
+        }
+    }
+
+    itemUrlEl.href = url;
+    checkCombination();
+}
 
 if (imageUpload) {
     imageUpload.addEventListener('change', (e) => {
@@ -115,82 +176,69 @@ function openImageModal(element) {
     const itemNameEl = document.getElementById('itemName');
     if (itemNameEl) itemNameEl.textContent = dataName;
 
+    baseProductUrl = element.dataset.url || '#';
+    if (itemUrlEl) itemUrlEl.href = baseProductUrl;
+
     // Check if this item supports size selection
-    const sizeEnabledItems = ['Latakas', 'Latakas 2', 'Lietvamzdis 1m'];
+    const sizeEnabledItems = ['Latakas', 'Latakas 2', 'Lietvamzdis'];
     const sizeSelection = document.querySelector('.size-selection');
     
     if (sizeEnabledItems.includes(dataName)) {
         sizeSelection.style.display = 'block';
+        
+        // Set size options based on item
+        itemSizeSelect.innerHTML = '';
+        if (dataName === 'Lietvamzdis') {
+            itemSizeSelect.innerHTML = '<option value="small">1 m.</option><option value="medium">3 m.</option>';
+        } else {
+            itemSizeSelect.innerHTML = '<option value="small">2 m.</option><option value="medium">3 m.</option><option value="large">4 m.</option>';
+        }
+        
         if (imageData[imageId]) {
-            quantityInput.value = imageData[imageId].quantity || 1;
             itemSizeSelect.value = imageData[imageId].size || 'small';
         } else {
-            quantityInput.value = 1;
             itemSizeSelect.value = 'small';
-            imageData[imageId] = { quantity: 1, size: 'small' };
+            imageData[imageId] = { size: 'small' };
         }
     } else {
         sizeSelection.style.display = 'none';
-        if (imageData[imageId]) {
-            quantityInput.value = imageData[imageId].quantity || 1;
-        } else {
-            quantityInput.value = 1;
-            imageData[imageId] = { quantity: 1 };
+        if (!imageData[imageId]) {
+            imageData[imageId] = {};
         }
     }
+
+    // Always update the catalog link based on current selections and the active item
+    updateProductUrlBySize();
+    checkCombination();
 
     if (imageModal) imageModal.style.display = 'block';
 }
 
-quantityInput.addEventListener('input', () => {
-    // Quantity input handling if needed
-});
+modalSizeSelect.addEventListener('change', updateProductUrlBySize);
+modalColorSelect.addEventListener('change', updateProductUrlBySize);
+itemSizeSelect.addEventListener('change', updateProductUrlBySize);
 
-addToCartBtn.addEventListener('click', () => {
-    if (!selectedImage) return;
-    
-    const imageId = selectedImage.dataset.imageId;
-    const quantity = parseInt(quantityInput.value) || 1;
-    const dataName = selectedImage.dataset.name || '';
-    
-    if (quantity <= 0) {
-        alert('Please enter valid quantity');
-        return;
+// Add validation for catalog button click
+itemUrlEl.addEventListener('click', (e) => {
+    const size = modalSizeSelect ? modalSizeSelect.value : '';
+    const color = modalColorSelect ? modalColorSelect.value : '';
+
+    // Always require explicit size + color selection.
+    if (!size || !color) {
+        e.preventDefault(); // Prevent navigation
+        alert('Prašome pasirinkti sistemos dydį ir spalvą prieš peržiūrint kataloge.');
+        return false;
     }
-    
-    const name = selectedImage.dataset.name || '';
-    const sizeEnabledItems = ['Latakas', 'Latakas 2', 'Lietvamzdis 1m'];
-    
-    let cartItem = {
-        imageId,
-        name,
-        quantity
-    };
-    
-    if (sizeEnabledItems.includes(dataName)) {
-        const size = itemSizeSelect.value;
-        const sizeText = itemSizeSelect.options[itemSizeSelect.selectedIndex].text;
-        cartItem.size = size;
-        cartItem.sizeText = sizeText;
-        
-        // Save quantity and size to imageData
-        imageData[imageId] = { quantity, size };
-        
-        cart.push(cartItem);
-        
-        if (imageModal) imageModal.style.display = 'none';
-        alert(`Added to cart: ${quantity} items (${sizeText})`);
-    } else {
-        // Save only quantity to imageData
-        imageData[imageId] = { quantity };
-        
-        cart.push(cartItem);
-        
-        if (imageModal) imageModal.style.display = 'none';
-        alert(`Added to cart: ${quantity} items`);
+
+    const hrefAttr = itemUrlEl.getAttribute('href') || '';
+    const hrefProp = itemUrlEl.href || '';
+
+    // If there is no valid URL set (or it is still '#'), also block navigation.
+    if (!hrefProp || hrefAttr === '#' || hrefProp.endsWith('#')) {
+        e.preventDefault();
+        alert('Prašome pasirinkti sistemos dydį ir spalvą prieš peržiūrint kataloge.');
+        return false;
     }
-    
-    console.log('Cart:', cart);
 });
 
 cancelBtn.addEventListener('click', () => {
@@ -224,4 +272,25 @@ function initPlaceholders() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initPlaceholders();
+    
+    // Show welcome modal on page load
+    if (welcomeModal) {
+        welcomeModal.style.display = 'block';
+    }
+    
+    // Close welcome modal
+    if (welcomeCloseBtn) {
+        welcomeCloseBtn.addEventListener('click', () => {
+            if (welcomeModal) {
+                welcomeModal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Close welcome modal when clicking outside
+    window.addEventListener('click', (e) => {
+        if (e.target === welcomeModal) {
+            welcomeModal.style.display = 'none';
+        }
+    });
 });

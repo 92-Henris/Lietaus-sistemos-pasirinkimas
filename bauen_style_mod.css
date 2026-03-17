@@ -830,7 +830,7 @@ background-position: 5px -90px;
 
   padding: 1px 0 1px 22px;
 
-  background: url(../img/support-nav.png) 0 1px no-repeat;
+  background: url(https://www.bauen.lt/resources/img/support-nav.png) 0 1px no-repeat;
 
 }
 
@@ -1059,8 +1059,9 @@ background-position: 5px -90px;
 }
 
 .support-block-long {
+  margin-top: 50px;
 
-  padding: 0 390px 30px 0;
+  padding: 0px 50px 0px 50px;
 
   position: relative;
 
@@ -1092,7 +1093,7 @@ background-position: 5px -90px;
 
   bottom: 0;
 
-  background: url(../img/worker.jpg) right top no-repeat;
+  background: url(https://www.bauen.lt/resources/img/worker.jpg) right top no-repeat;
 
   padding: 147px 226px 0 0 ;
 
@@ -2981,9 +2982,10 @@ background-position: 5px -90px;
 
 
 .support-block-long {
-
+    box-shadow: 0 8px 6px -6px black;
     margin-top: 85px;
-
+    margin-left: 100px;
+    margin-right: 180px;
 }
 
 
@@ -3959,6 +3961,7 @@ td.products-list-table-price {
 .instagram-link img {
 
     width: 64px;
+    margin-top: 25px;
 
 }
 
@@ -3983,5 +3986,5 @@ td.products-list-table-price {
 .form-field input[id$="city_title"] + .ui-helper-hidden-accessible {
 
     display: none;
-
 }
+
